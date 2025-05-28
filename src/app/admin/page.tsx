@@ -872,7 +872,7 @@ function FormModal({
                 Profile Picture URL
               </label>
               <input
-                type="url"
+                // type="url"
                 value={formData.profilePic || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, profilePic: e.target.value })
