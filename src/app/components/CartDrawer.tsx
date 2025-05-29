@@ -39,11 +39,11 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
-  const handleQuantityChange = (productId: string, newQuantity: number) => {
+  const handleQuantityChange = (key: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      removeItem(productId);
+      removeItem(key);
     } else {
-      updateQuantity(productId, newQuantity);
+      updateQuantity(key, newQuantity);
     }
   };
 
@@ -132,7 +132,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       {/* Product Details */}
                       <div className="flex-1 min-w-0">
                         <h3 className="font-normal text-white truncate text-sm uppercase tracking-wide">
-                          {item.title}
+                          {item.key}
+                          {/* {item.title} */}
                         </h3>
                         <p className="text-white mt-2 font-medium">
                           {formatPrice(item.price)}
@@ -144,7 +145,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                             <button
                               onClick={() =>
                                 handleQuantityChange(
-                                  item.productId,
+                                  item.key,
                                   item.quantity - 1
                                 )
                               }
@@ -159,7 +160,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                             <button
                               onClick={() =>
                                 handleQuantityChange(
-                                  item.productId,
+                                  item.key,
                                   item.quantity + 1
                                 )
                               }
@@ -175,7 +176,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       {/* Remove Button & Item Total */}
                       <div className="flex flex-col items-end justify-between">
                         <button
-                          onClick={() => removeItem(item.productId)}
+                          onClick={() => removeItem(item.key)}
                           className="p-1 hover:bg-neutral-800 rounded transition-colors text-neutral-400 hover:text-white"
                           aria-label="Remove item"
                         >
