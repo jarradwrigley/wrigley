@@ -109,10 +109,7 @@ export default function AdminDashboard() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    console.log("p3p3p3", users);
-  }, [users]);
-
+ 
   useEffect(() => {
     if (status === "loading") return;
 
@@ -196,6 +193,7 @@ export default function AdminDashboard() {
   };
 
   const handleCreate = async (formData: any) => {
+    // console.log('vvv', formData)
     try {
       const response = await fetch(`/api/admin/${activeTab}`, {
         method: "POST",
@@ -455,10 +453,10 @@ function UsersTable({
                   <div className="flex items-center">
                     <img
                       className="h-10 w-10 rounded-full"
-                      src={user.profilePic || '/default-avatar.png'}
+                      src={user.profilePic || '/images/product1.avif'}
                       alt=""
                       onError={(e) => {
-                        e.currentTarget.src = '/default-avatar.png';
+                        e.currentTarget.src = "/images/product1.avif";
                       }}
                     />
                     <div className="ml-4">
@@ -769,6 +767,486 @@ function OrdersTable({
 }
 
 // Form Modal Component
+// function FormModal({
+//   type,
+//   item,
+//   onSubmit,
+//   onClose,
+// }: {
+//   type: string;
+//   item?: any;
+//   onSubmit: (data: any) => void;
+//   onClose: () => void;
+// }) {
+//   const [formData, setFormData] = useState(item || {});
+
+//   // useEffect(() => {
+//   //   console.log("p3p3p3", formData);
+//   // }, [formData]);
+
+
+//   const handleSubmit = (e: React.FormEvent) => {
+//     e.preventDefault();
+//     onSubmit(formData);
+//   };
+
+//   const renderFormFields = () => {
+//     switch (type) {
+//       case "users":
+//         return (
+//           <>
+//             <div className="grid grid-cols-2 gap-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Username
+//                 </label>
+//                 <input
+//                   type="text"
+//                   value={formData.username || ""}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, username: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                   required
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Email
+//                 </label>
+//                 <input
+//                   type="email"
+//                   value={formData.email || ""}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, email: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                   required
+//                 />
+//               </div>
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Name
+//               </label>
+//               <input
+//                 type="text"
+//                 value={formData.name || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, name: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//               />
+//             </div>
+//             <div className="grid grid-cols-2 gap-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Password
+//                 </label>
+//                 <input
+//                   type="password"
+//                   value={formData.password || ""}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, password: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                   required={!item}
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Role
+//                 </label>
+//                 <select
+//                   value={formData.role || "user"}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, role: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                 >
+//                   <option value="user">User</option>
+//                   <option value="manager">Manager</option>
+//                   <option value="admin">Admin</option>
+//                 </select>
+//               </div>
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Profile Picture URL
+//               </label>
+//               <input
+//                 // type="url"
+//                 value={formData.profilePic || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, profilePic: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//               />
+//             </div>
+//           </>
+//         );
+
+//       case "tours":
+//         return (
+//           <>
+//             <div className="grid grid-cols-3 gap-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Date
+//                 </label>
+//                 <input
+//                   type="number"
+//                   value={formData.date || ""}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, date: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                   required
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Month
+//                 </label>
+//                 <input
+//                   type="text"
+//                   value={formData.mon || ""}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, mon: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                   required
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Price
+//                 </label>
+//                 <input
+//                   type="number"
+//                   step="0.01"
+//                   value={formData.price || ""}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, price: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                 />
+//               </div>
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Title
+//               </label>
+//               <input
+//                 type="text"
+//                 value={formData.title || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, title: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                 required
+//               />
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Location
+//               </label>
+//               <input
+//                 type="text"
+//                 value={formData.location || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, location: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                 required
+//               />
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Venue
+//               </label>
+//               <input
+//                 type="text"
+//                 value={formData.venue || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, venue: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//               />
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Description
+//               </label>
+//               <textarea
+//                 value={formData.desc || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, desc: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                 rows={3}
+//                 required
+//               />
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Link
+//               </label>
+//               <input
+//                 type="url"
+//                 value={formData.link || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, link: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//               />
+//             </div>
+//           </>
+//         );
+
+//       case "products":
+//         return (
+//           <>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Name
+//               </label>
+//               <input
+//                 type="text"
+//                 value={formData.name || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, name: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                 required
+//               />
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Description
+//               </label>
+//               <textarea
+//                 value={formData.description || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, description: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                 rows={3}
+//                 required
+//               />
+//             </div>
+//             <div className="grid grid-cols-3 gap-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Price
+//                 </label>
+//                 <input
+//                   type="number"
+//                   step="0.01"
+//                   value={formData.price || ""}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, price: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                   required
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Stock
+//                 </label>
+//                 <input
+//                   type="number"
+//                   value={formData.stock || ""}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, stock: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                   required
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Category
+//                 </label>
+//                 <input
+//                   type="text"
+//                   value={formData.category || ""}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, category: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                   required
+//                 />
+//               </div>
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Image URL
+//               </label>
+//               <input
+//                 type="url"
+//                 value={formData.image || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, image: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//               />
+//             </div>
+//             <div>
+//               <label className="flex items-center">
+//                 <input
+//                   type="checkbox"
+//                   checked={formData.featured || false}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, featured: e.target.checked })
+//                   }
+//                   className="mr-2"
+//                 />
+//                 <span className="text-sm font-medium text-gray-700">
+//                   Featured Product
+//                 </span>
+//               </label>
+//             </div>
+//           </>
+//         );
+
+//       case "orders":
+//         return (
+//           <>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 User ID
+//               </label>
+//               <input
+//                 type="text"
+//                 value={formData.userId || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, userId: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                 required={!item}
+//                 disabled={!!item}
+//               />
+//             </div>
+//             <div className="grid grid-cols-2 gap-4">
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Total
+//                 </label>
+//                 <input
+//                   type="number"
+//                   step="0.01"
+//                   value={formData.total || ""}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, total: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                   required={!item}
+//                   disabled={!!item}
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block text-sm font-medium text-gray-700">
+//                   Status
+//                 </label>
+//                 <select
+//                   value={formData.status || "pending"}
+//                   onChange={(e) =>
+//                     setFormData({ ...formData, status: e.target.value })
+//                   }
+//                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                 >
+//                   <option value="pending">Pending</option>
+//                   <option value="processing">Processing</option>
+//                   <option value="shipped">Shipped</option>
+//                   <option value="completed">Completed</option>
+//                   <option value="cancelled">Cancelled</option>
+//                 </select>
+//               </div>
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Payment Method
+//               </label>
+//               <input
+//                 type="text"
+//                 value={formData.paymentMethod || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, paymentMethod: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//               />
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Shipping Address
+//               </label>
+//               <textarea
+//                 value={
+//                   typeof formData.shippingAddress === "string"
+//                     ? formData.shippingAddress
+//                     : JSON.stringify(formData.shippingAddress || {})
+//                 }
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, shippingAddress: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                 rows={3}
+//                 placeholder="Enter address or JSON object"
+//               />
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">
+//                 Notes
+//               </label>
+//               <textarea
+//                 value={formData.notes || ""}
+//                 onChange={(e) =>
+//                   setFormData({ ...formData, notes: e.target.value })
+//                 }
+//                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+//                 rows={2}
+//               />
+//             </div>
+//           </>
+//         );
+
+//       default:
+//         return null;
+//     }
+//   };
+
+//   return (
+//     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+//       <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
+//         <div className="mt-3">
+//           <h3 className="text-lg font-medium text-gray-900 mb-4">
+//             {item ? "Edit" : "Create"} {type.slice(0, -1)}
+//           </h3>
+//           <form onSubmit={handleSubmit} className="space-y-4">
+//             {renderFormFields()}
+//             <div className="flex justify-end space-x-4 pt-4">
+//               <button
+//                 type="button"
+//                 onClick={onClose}
+//                 className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+//               >
+//                 Cancel
+//               </button>
+//               <button
+//                 type="submit"
+//                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+//               >
+//                 {item ? "Update" : "Create"}
+//               </button>
+//             </div>
+//           </form>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 function FormModal({
   type,
   item,
@@ -780,7 +1258,67 @@ function FormModal({
   onSubmit: (data: any) => void;
   onClose: () => void;
 }) {
-  const [formData, setFormData] = useState(item || {});
+  // Initialize formData with default values based on type
+  const getDefaultFormData = () => {
+    switch (type) {
+      case "users":
+        return {
+          username: "",
+          email: "",
+          name: "",
+          password: "",
+          role: "user", // Default role
+          profilePic: "",
+          ...item, // Spread item to override defaults if editing
+        };
+      case "tours":
+        return {
+          date: "",
+          mon: "",
+          price: "",
+          title: "",
+          location: "",
+          venue: "",
+          desc: "",
+          link: "",
+          ...item,
+        };
+      case "products":
+        return {
+          name: "",
+          description: "",
+          price: "",
+          stock: "",
+          category: "",
+          image: "",
+          featured: false,
+          ...item,
+        };
+      case "orders":
+        return {
+          userId: "",
+          total: "",
+          status: "pending",
+          paymentMethod: "",
+          shippingAddress: "",
+          notes: "",
+          ...item,
+        };
+      default:
+        return item || {};
+    }
+  };
+
+  const [formData, setFormData] = useState(getDefaultFormData());
+
+  // Update formData when item changes (useful for editing different items)
+  useEffect(() => {
+    setFormData(getDefaultFormData());
+  }, [item, type]);
+
+  useEffect(() => {
+    console.log("FormData with all fields:", formData);
+  }, [formData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -848,6 +1386,11 @@ function FormModal({
                   }
                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                   required={!item}
+                  placeholder={
+                    item
+                      ? "Leave blank to keep current password"
+                      : "Enter password"
+                  }
                 />
               </div>
               <div>
