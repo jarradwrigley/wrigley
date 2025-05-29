@@ -5,8 +5,10 @@ import { ChevronDown, User, Settings, LogOut, Bell, Mail } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
+import { useStore } from "../../../store/store";
 
 export default function DropdownMenu() {
+  const { onLogout } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<any>(null);
   const { data: session } = useSession();
@@ -112,17 +114,17 @@ export default function DropdownMenu() {
             )}
 
             <div className="border-t border-gray-100 my-1"></div>
-            {/* <button
-              onClick={() => signOut()}
+            <button
+              onClick={() => onLogout()}
               className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
             >
               Sign out
-            </button> */}
-            <Link href="/api/auth/signout" className="hover:underline">
+            </button>
+            {/* <Link href="/api/auth/signout" className="hover:underline">
               <span className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
                 Sign out
               </span>
-            </Link>
+            </Link> */}
           </div>
         </div>
       )}

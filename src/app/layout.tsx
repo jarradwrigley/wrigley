@@ -1,19 +1,20 @@
-import './globals.css'
-import { Inter } from 'next/font/google'
-import Navbar from './components/Navbar'
-import AuthProvider from './context/AuthProvider'
+import "./globals.css";
+import { Inter } from "next/font/google";
+import Navbar from "./components/Navbar";
+import AuthProvider from "./context/AuthProvider";
+import CartSyncProvider from "./context/CartProvider";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: 'Jarrad Wrigley | Country Artist',
-  description: 'The Official Website of Country Music Artist - Jarrad Wrigley',
-}
+  title: "Jarrad Wrigley | Country Artist",
+  description: "The Official Website of Country Music Artist - Jarrad Wrigley",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
@@ -42,7 +43,7 @@ export default function RootLayout({
         <AuthProvider>
           {/* <Navbar /> */}
           {/* <main className="flex justify-center items-start p-6 min-h-screen"> */}
-          {children}
+          <CartSyncProvider>{children}</CartSyncProvider>
           {/* </main> */}
         </AuthProvider>
       </body>
