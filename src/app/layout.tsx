@@ -6,8 +6,8 @@ import AuthProvider from './context/AuthProvider'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'NextAuth Tutorial',
-  description: 'Learn NextAuth.js by Dave Gray',
+  title: 'Jarrad Wrigley | Country Artist',
+  description: 'The Official Website of Country Music Artist - Jarrad Wrigley',
 }
 
 export default function RootLayout({

@@ -71,23 +71,22 @@ export const useStore = create<AppState>()(
 
       addItem: (item: any) => {
         const { cart } = get();
+        const itemKey = `${item.key}-${item.size}`; // Composite key
 
-        // console.log('lll', item)
-        // console.log("cccc", cart);
-        // const price = parseFloat(item.amount.replace(/[^0-9.]/g, ""));
-
-        const existing = cart.find((i) => i.productId === item._id);
+        const existing = cart.find((i) => i.key === itemKey);
 
         let updatedCart;
         if (existing) {
           updatedCart = cart.map((i) =>
-            i.productId === item._id ? { ...i, quantity: i.quantity + 1 } : i
+            i.key === itemKey ? { ...i, quantity: i.quantity + 1 } : i
           );
         } else {
           updatedCart = [
             ...cart,
             {
               productId: item._id,
+              key: itemKey,
+              size: item.size,
               quantity: 1,
               price: item.amount,
               title: item.title,
@@ -104,8 +103,8 @@ export const useStore = create<AppState>()(
         set({ cart: updatedCart, total: newTotal });
       },
 
-      removeItem: (productId: string) => {
-        const updatedCart = get().cart.filter((i) => i.productId !== productId);
+      removeItem: (key: string) => {
+        const updatedCart = get().cart.filter((i) => i.key !== key);
         const newTotal = updatedCart.reduce(
           (acc, i) => acc + i.price * i.quantity,
           0
@@ -114,9 +113,9 @@ export const useStore = create<AppState>()(
         set({ cart: updatedCart, total: newTotal });
       },
 
-      updateQuantity: (productId: string, quantity: number) => {
+      updateQuantity: (key: string, quantity: number) => {
         const updatedCart = get().cart.map((item) =>
-          item.productId === productId ? { ...item, quantity } : item
+          item.key === key ? { ...item, quantity } : item
         );
 
         const newTotal = updatedCart.reduce(
