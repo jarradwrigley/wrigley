@@ -16,7 +16,8 @@ export default function ClientPage() {
 
   return (
     <section className='flex flex-col gap-6'>
-      <UserCard user={session?.user} pagetype={"Client"} />
+      <div>client</div>
+      {/* <UserCard user={session?.user} pagetype={"Client"} /> */}
     </section>
   );
 }

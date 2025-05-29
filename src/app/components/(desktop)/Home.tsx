@@ -438,10 +438,7 @@ export default function DesktopHomePage() {
         {/* <div className="flex w-full  items-center justify-between mt-[2rem]"> */}
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-16 justify-items-center mt-[2rem] ">
           {products.map((product: any, index: any) => {
-            // const itemInCart = cart.find(
-            //   (cartItem) => cartItem.key === product.key
-            // );
-
+           
             const itemKey = `${product.key}-${product.size}`;
             const itemInCart = cart.find(
               (cartItem) => cartItem.key === itemKey

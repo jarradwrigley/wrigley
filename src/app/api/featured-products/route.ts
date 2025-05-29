@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const client = await clientPromise;
     const db = client.db();
-    const productsCollection = db.collection("featureds");
+    const productsCollection = db.collection("products");
 
     const products = await productsCollection.find({}).toArray();
 
