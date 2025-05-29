@@ -9,8 +9,10 @@ import VideoMaskedLogo from "./MaskedLogo";
 import ShoppingBadge from "./ShoppingBadge";
 import { signOut, useSession } from "next-auth/react";
 import DropdownMenu from "./MenuDropdown";
+import { useStore } from "../../../store/store";
 
 const Header = () => {
+  const { setIsCartOpen } = useStore();
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
@@ -157,9 +159,15 @@ const Header = () => {
               </Link>
             )}
 
-            <Link href="/cart" className=" h-full transition-opacity">
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className=""
+              aria-label="Open shopping cart"
+            >
+              {/* <Link href="/cart" className=" h-full transition-opacity"> */}
               <ShoppingBadge />
-            </Link>
+              {/* </Link> */}
+            </button>
           </div>
         </div>
       </div>
