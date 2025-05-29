@@ -62,12 +62,13 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, email, password, role = "user" } = body;
+    // console.log('bbbb', body)
+    const { name, email, password, role = "user", username, profilePic } = body;
 
     // Validation
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !username ) {
       return NextResponse.json(
-        { error: "Name, email, and password are required" },
+        { error: "Name, email, username and password are required" },
         { status: 400 }
       );
     }
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Role validation
-    const validRoles = ["user", "admin"];
+    const validRoles = ["user", "admin", "superadmin"];
     if (!validRoles.includes(role)) {
       return NextResponse.json(
         { error: "Invalid role. Must be 'user' or 'admin'" },
@@ -121,6 +122,8 @@ export async function POST(req: NextRequest) {
         email: email.toLowerCase().trim(),
         password: hashedPassword,
         role,
+        username: username.trim(),
+        profilePic: profilePic || "/images/avatar.png",
         createdAt: new Date(),
         updatedAt: new Date(),
         isActive: true,
