@@ -1,8 +1,11 @@
+"use client";
+
 import React, { useState } from "react";
 import { ShoppingCart } from "lucide-react";
+import { useStore } from "../../../store/store";
 
 const ShoppingBadge = () => {
-  const [cartCount, setCartCount] = useState(0); // Example count
+  const { total, cart } = useStore();
 
   return (
     <div
@@ -46,7 +49,7 @@ const ShoppingBadge = () => {
             //   justifyContent: "center",
           }}
         >
-          {cartCount > 99 ? "99+" : cartCount}
+          {cart.length > 99 ? "99+" : cart.length}
         </span>
         {/* )} */}
       </div>

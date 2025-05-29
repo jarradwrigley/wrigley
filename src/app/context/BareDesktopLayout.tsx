@@ -5,7 +5,7 @@ import CartDrawer from "../components/CartDrawer";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 
-export default function DesktopLayout({
+export default function BareDesktopLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -14,13 +14,13 @@ export default function DesktopLayout({
 
   return (
     <div
-      className="desktop-layout desktop-only"
+      className="bare-desktop-layout desktop-only"
       // className="min-h-screen bg-black text-white"
     >
-      <Header />
+      {/* <Header /> */}
       {children}
 
-      <Footer />
+      {/* <Footer /> */}
 
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </div>

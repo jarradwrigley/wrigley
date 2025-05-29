@@ -52,11 +52,21 @@ body {
 }
 
 .desktop-layout {
-  max-width: 1200px;
-  margin: 0 auto;
-  background-color: white;
+  /* max-width: 1200px; */
+  /* margin: 0 auto; */
+  background-color: black;
+  color: white;
   min-height: 100dvh;
-  padding: 40px;
+  /* padding: 40px; */
+}
+
+.bare-desktop-layout {
+  /* max-width: 1200px; */
+  /* margin: 0 auto; */
+  background-color: white;
+  color: black;
+  min-height: 100dvh;
+  /* padding: 40px; */
 }
 
 .no-scrollbar::-webkit-scrollbar {
