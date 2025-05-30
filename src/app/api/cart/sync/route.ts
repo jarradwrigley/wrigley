@@ -46,10 +46,10 @@ export async function POST(req: Request) {
 
     const { cart, total } = await req.json();
 
-    if (!cart.length) {
-      console.log("Skipping cart sync on logout or empty cart");
-      return NextResponse.json({ message: "Empty cart not synced" });
-    }
+    // if (!cart.length) {
+    //   console.log("Skipping cart sync on logout or empty cart");
+    //   return NextResponse.json({ message: "Empty cart not synced" });
+    // }
 
     const client = await clientPromise;
     const db = client.db();
