@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useStore } from "../../../../store/store";
 import { formatUSD } from "@/app/lib/utils";
 import { Minus, Plus } from "lucide-react";
+import { SizeSelectionModal } from "../SizeSelectionModal";
 
 // Move the data fetching to a client-side hook since we're now using "use client"
 function useProducts() {
@@ -34,12 +35,21 @@ function useProducts() {
 
 export default function DesktopShopPage() {
   const { products, loading } = useProducts();
-  const { addItem,removeItem,updateQuantity,  cart } = useStore();
+  const {
+    addItem,
+    removeItem,
+    updateQuantity,
+    cart,
+    openSizeModal,
+    closeSizeModal,
+    addItemWithSize,
+    sizeModalProduct,
+    isSizeModalOpen,
+  } = useStore();
 
-  useEffect(() => {
-    console.log("ccc", cart);
-  }, [cart]);
-
+  // useEffect(() => {
+  //   console.log("ccc", cart);
+  // }, [cart]);
 
   const handleQuantityChange = (key: string, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -49,10 +59,26 @@ export default function DesktopShopPage() {
     }
   };
 
+  const handleAddToCart = (product: any) => {
+    if (product.requiresSize) {
+      openSizeModal(product);
+    } else {
+      // For products that don't require size, add with default size
+      addItem(product, "default", 1);
+    }
+  };
+
+  const handleAddToCartFromModal = (
+    product: any,
+    size: string,
+    quantity: number
+  ) => {
+    addItemWithSize(product, size, quantity);
+  };
+
   if (loading) {
     return <div className="px-[7rem] mt-[2rem]">Loading products...</div>;
   }
-
 
   return (
     <>
@@ -140,7 +166,7 @@ export default function DesktopShopPage() {
               </div>
             );
           })} */}
-          {products.map((item: any, index: any) => {
+          {/* {products.map((item: any, index: any) => {
             const itemKey = `${item.key}-${item.size}`;
             const itemInCart = cart.find(
               (cartItem) => cartItem.key === itemKey
@@ -152,13 +178,11 @@ export default function DesktopShopPage() {
                 key={index}
                 className="flex flex-col gap-3 w-[201px] h-full justify-between"
               >
-                {/* Promo Tag */}
                 <div className="relative">
                   {item.promo && (
                     <div className="flex items-center justify-center absolute px-2 py-0.5 top-0 left-0 bg-white">
                       <span className="text-gray-600 text-[12px]">
                         {item.promo}
-                        {/* {item.promo} */}
                       </span>
                     </div>
                   )}
@@ -170,7 +194,6 @@ export default function DesktopShopPage() {
                   />
                 </div>
 
-                {/* Title and Price */}
                 <div className="flex flex-col">
                   <span>{item.title}</span>
                   <span className="font-[300] text-gray-400">
@@ -178,7 +201,6 @@ export default function DesktopShopPage() {
                   </span>
                 </div>
 
-                {/* Cart Controls */}
                 {isInCart ? (
                   <div className="flex items-center gap-3 ">
                     <div className="flex justify-between items-center px-1 border w-full border-neutral-600 rounded">
@@ -225,6 +247,111 @@ export default function DesktopShopPage() {
                 )}
               </div>
             );
+          })} */}
+
+          {products.map((product: any, index: number) => {
+            // For products with sizes, we need to check all possible size combinations
+            const productInCart = cart.filter((item) =>
+              item.key.startsWith(`${product.key}-`)
+            );
+
+            // For display purposes, we'll show quantity controls only if there's exactly one variant in cart
+            // and the product doesn't require size selection (or has a default size)
+            const defaultItemKey = `${product.key}-default`;
+            const defaultItemInCart = cart.find(
+              (cartItem) => cartItem.key === defaultItemKey
+            );
+
+            const shouldShowQuantityControls =
+              !product.requiresSize && defaultItemInCart;
+            const isInCart = productInCart.length > 0;
+
+            return (
+              <div
+                key={index}
+                className="flex flex-col gap-3 w-[201px] h-full justify-between  "
+              >
+                <div className="relative">
+                  <div className="flex items-center justify-center absolute px-2 py-0.5 top-0 left-0 bg-white">
+                    <span className="text-gray-600 text-[12px]">
+                      {product.promo}
+                    </span>
+                  </div>
+                  <Image
+                    src={product.image}
+                    alt={product.title}
+                    width={201}
+                    height={201}
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <span>{product.title}</span>
+                  <span className="font-[300] text-gray-400">
+                    {formatUSD(product.amount)}
+                  </span>
+                  {/* {product.requiresSize && (
+                              <span className="text-xs text-gray-500 mt-1">
+                                Multiple sizes available
+                              </span>
+                            )} */}
+                </div>
+
+                {shouldShowQuantityControls ? (
+                  <div className="flex items-center gap-3 ">
+                    <div className="flex justify-between items-center px-1 border w-full border-neutral-600 rounded">
+                      <button
+                        onClick={() =>
+                          handleQuantityChange(
+                            defaultItemInCart.key,
+                            defaultItemInCart.quantity - 1
+                          )
+                        }
+                        className="p-2 flex rounded-[4px] items-center justify-center w-[30%] hover:bg-neutral-800 transition-colors text-white"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="px-4 py-2 text-white text-sm font-medium min-w-[2rem] text-center">
+                        {defaultItemInCart.quantity}
+                      </span>
+                      <button
+                        onClick={() =>
+                          handleQuantityChange(
+                            defaultItemInCart.key,
+                            defaultItemInCart.quantity + 1
+                          )
+                        }
+                        className="p-2 w-[30%] rounded-[4px] flex items-center justify-center hover:bg-neutral-800 transition-colors text-white"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // : product.key === "lgwj1" ? (
+                  //   <button className="w-full flex items-center justify-center gap-2 bg-white text-black px-4 py-2 rounded-sm hover:bg-gray-800 hover:text-white cursor-pointer transition-colors">
+                  //     <span>Pre-Order</span>
+                  //   </button>
+                  // )
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    className="w-full flex items-center justify-center gap-2 bg-white text-black px-4 py-2 rounded-sm hover:bg-gray-800 hover:text-white cursor-pointer transition-colors"
+                  >
+                    <span>
+                      {product.requiresSize ? "Pre-Order" : "Add to Cart"}
+                      {/* {isInCart && product.requiresSize && (
+                                  <span className="ml-1 text-xs">
+                                    ({productInCart.length} variant
+                                    {productInCart.length > 1 ? "s" : ""})
+                                  </span>
+                                )} */}
+                    </span>
+                  </button>
+                )}
+              </div>
+            );
           })}
 
           <div className="flex flex-col gap-3 w-[201px] h-full justify-between">
@@ -245,6 +372,13 @@ export default function DesktopShopPage() {
           </div>
         </div>
       </div>
+
+      <SizeSelectionModal
+        product={sizeModalProduct}
+        isOpen={isSizeModalOpen}
+        onClose={closeSizeModal}
+        onAddToCart={handleAddToCartFromModal}
+      />
     </>
   );
 }

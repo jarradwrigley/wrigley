@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
 import { useStore } from "../../../store/store";
+import { useAuthSync } from "@/hooks/useAuthSync";
 
 export default function CartSyncProvider({
   children,
@@ -21,10 +22,12 @@ export default function CartSyncProvider({
 
     if (status === "unauthenticated" && wasAuthenticated.current) {
       onLogout(); // only clear if the user was logged in before
-      clearCart()
+      clearCart();
       wasAuthenticated.current = false;
     }
   }, [status]);
+
+  useAuthSync();
 
   return <>{children}</>;
 }
