@@ -69,7 +69,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
   const handleCheckout = () => {
     // Navigate to checkout page
-    window.location.href = "/checkout";
+    window.location.href = "/cart";
     onClose();
   };
 

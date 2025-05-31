@@ -9,6 +9,7 @@ import {
   Trash2,
   Lock,
   MapPin,
+  ArrowLeft,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -28,6 +29,7 @@ import {
   validateCreditCard,
   formatCardNumber,
   formatExpirationDate,
+  validateGuestEmail,
 } from "@/lib/utils";
 
 const MAPBOX_TOKEN =
@@ -69,6 +71,8 @@ export default function DesktopPaymentPage() {
   const [stage, setStage] = useState(1);
   const [promoCode, setPromoCode] = useState("");
   const [note, setNote] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [isGuestCheckout, setIsGuestCheckout] = useState(false);
   // const [isLoading, setIsLoading] = useState(false);
   const [sameAsBillingAddress, setSameAsBillingAddress] = useState(true);
   const [selectedDeliveryAddress, setSelectedDeliveryAddress] =
@@ -90,6 +94,20 @@ export default function DesktopPaymentPage() {
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [flowErrors, setFlowErrors] = useState<any>({});
   const [fieldTouched, setFieldTouched] = useState<any>({});
+
+  useEffect(() => {
+    if (status === "loading") return; // Still loading
+
+    if (status === "unauthenticated") {
+      // console.log('ggggg')
+      // No session - enable guest checkout
+      setIsGuestCheckout(true);
+    } else if (session) {
+      // console.log("fffff");
+      // User is authenticated
+      setIsGuestCheckout(false);
+    }
+  }, [session, status]);
 
   useEffect(() => {
     const validateCheckoutAccess = () => {
@@ -136,8 +154,8 @@ export default function DesktopPaymentPage() {
           description: "Please go through checkout page",
           duration: 4000,
           action: {
-            label: "Go to Checkout",
-            onClick: () => router.push("/checkout"),
+            label: "Go to Cart",
+            onClick: () => router.push("/cart"),
           },
         });
         router.replace("/");
@@ -165,10 +183,7 @@ export default function DesktopPaymentPage() {
   useEffect(() => {
     const handleBeforeUnload = () => {
       const currentPath = window.location.pathname;
-      if (
-        !currentPath.includes("/checkout") &&
-        !currentPath.includes("/orders")
-      ) {
+      if (!currentPath.includes("/cart") && !currentPath.includes("/orders")) {
         sessionStorage.removeItem("canAccessCheckout");
         sessionStorage.removeItem("checkoutAllowedTime");
       }
@@ -187,11 +202,17 @@ export default function DesktopPaymentPage() {
     const phoneValidation = validatePhone(formData.phone);
     const addressValidation = validateAddress(address);
 
-    return (
+    const userBillingAddressComplete =
       nameValidation.isValid &&
       phoneValidation.isValid &&
-      addressValidation.isValid
-    );
+      addressValidation.isValid;
+
+    if (isGuestCheckout) {
+      const emailValidation = validateGuestEmail(guestEmail);
+      return userBillingAddressComplete && emailValidation.isValid;
+    }
+
+    return userBillingAddressComplete;
   };
 
   const isPaymentDetailsComplete = () => {
@@ -213,19 +234,20 @@ export default function DesktopPaymentPage() {
       return deliveryValidation.isValid;
     }
 
+    if (isGuestCheckout && !sameAsBillingAddress) {
+      const deliveryValidation = validateAddress(deliveryAddress);
+      return deliveryValidation.isValid;
+    }
+
     return false;
   };
 
   // Fetch saved addresses when component mounts
   useEffect(() => {
     const fetchSavedAddresses = async () => {
-      if (session?.user?.id) {
+      if (session?.user?.id && !isGuestCheckout) {
         try {
-          // Replace with your actual API endpoint
-          const response = await fetch(
-            // `/api/users/${session.user.id}/addresses`
-            `/api/users/addresses`
-          );
+          const response = await fetch(`/api/users/addresses`);
           if (response.ok) {
             const addresses = await response.json();
             setSavedAddresses(addresses);
@@ -233,11 +255,14 @@ export default function DesktopPaymentPage() {
         } catch (error) {
           console.error("Failed to fetch saved addresses:", error);
         }
+      } else {
+        // Guest user - no saved addresses
+        setSavedAddresses([]);
       }
     };
 
     fetchSavedAddresses();
-  }, [session]);
+  }, [session, isGuestCheckout]);
 
   // useEffect(() => {console.log('ddsss', savedAddresses)}, [savedAddresses])
 
@@ -313,183 +338,31 @@ export default function DesktopPaymentPage() {
     }
   };
 
-  
-  // const handleCheckout = async () => {
-  //   const finalDeliveryAddress = sameAsBillingAddress
-  //     ? address
-  //     : deliveryAddress;
-
-  //   // Comprehensive validation
-  //   const validation = validateCheckoutForm(
-  //     formData,
-  //     address,
-  //     finalDeliveryAddress,
-  //     sameAsBillingAddress
+  // const isFormComplete = () => {
+  //   return (
+  //     isBillingAddressComplete() &&
+  //     isPaymentDetailsComplete() &&
+  //     isDeliveryAddressComplete()
   //   );
-
-  //   if (!validation.isValid) {
-  //     console.log("Validation failed:", validation.errors);
-  //     setFlowErrors(validation.errors);
-
-  //     // Mark all fields as touched to show validation errors
-  //     setFieldTouched({
-  //       firstName: true,
-  //       lastName: true,
-  //       phone: true,
-  //       address: true,
-  //       cardNumber: true,
-  //       expirationDate: true,
-  //       cvv: true,
-  //       cardHolder: true,
-  //     });
-
-  //     // Show error toast with specific validation issues
-  //     const errorMessages = [];
-
-  //     if (validation.errors.firstName)
-  //       errorMessages.push("First name is invalid");
-  //     if (validation.errors.lastName)
-  //       errorMessages.push("Last name is invalid");
-  //     if (validation.errors.phone)
-  //       errorMessages.push("Phone number is invalid");
-  //     if (validation.errors.address)
-  //       errorMessages.push("Billing address is incomplete");
-  //     if (validation.errors.deliveryAddress)
-  //       errorMessages.push("Delivery address is incomplete");
-  //     if (validation.errors.payment) {
-  //       if (validation.errors.payment.cardNumber)
-  //         errorMessages.push("Card number is invalid");
-  //       if (validation.errors.payment.expirationDate)
-  //         errorMessages.push("Expiration date is invalid");
-  //       if (validation.errors.payment.cvv) errorMessages.push("CVV is invalid");
-  //       if (validation.errors.payment.cardHolder)
-  //         errorMessages.push("Cardholder name is invalid");
-  //     }
-
-  //     toast.error("Please correct the following errors:", {
-  //       description: errorMessages.join(", "),
-  //       duration: 5000,
-  //       action: {
-  //         label: "Review Form",
-  //         onClick: () => {
-  //           // Scroll to first error field
-  //           const firstErrorElement: any =
-  //             document.querySelector(".border-red-500");
-  //           if (firstErrorElement) {
-  //             firstErrorElement.scrollIntoView({
-  //               behavior: "smooth",
-  //               block: "center",
-  //             });
-  //             firstErrorElement.focus();
-  //           }
-  //         },
-  //       },
-  //     });
-
-  //     return;
-  //   }
-
-  //   // Clear any previous errors
-  //   setFlowErrors({});
-
-  //   // Show success toast for validation passed
-  //   toast.success("Processing your order", {
-  //     description: "Please wait...",
-  //     duration: 2000,
-  //   });
-
-  //   // Proceed with checkout
-  //   setLoading(true, "Processing your order...");
-  //   // console.log("Processing checkout...");
-  //   console.log("Billing Address:", address);
-  //   console.log("Delivery Address:", finalDeliveryAddress);
-  //   console.log("Payment Details:", formData);
-
-  //   // // Simulate API call
-  //   // setTimeout(() => {
-  //   //   setLoading(false);
-
-  //   //   // Simulate success/error responses
-  //   //   const isSuccess = Math.random() > 0.3; // 70% success rate for demo
-
-  //   //   if (isSuccess) {
-  //   //     toast.success("Order placed successfully!", {
-  //   //       description: "You will receive a confirmation email shortly.",
-  //   //       duration: 4000,
-  //   //       action: {
-  //   //         label: "View Order",
-  //   //         onClick: () => router.push("/orders"),
-  //   //       },
-  //   //     });
-  //   //   } else {
-  //   //     toast.error("Payment failed", {
-  //   //       description: "Please check your payment details and try again.",
-  //   //       duration: 4000,
-  //   //       action: {
-  //   //         label: "Retry",
-  //   //         onClick: () => handleCheckout(),
-  //   //       },
-  //   //     });
-  //   //   }
-  //   // }, 5000);
-
-  //   try {
-  //     const orderData = {
-  //       items: cart,
-  //       billingAddress: address,
-  //       deliveryAddress: finalDeliveryAddress,
-  //       paymentDetails: {
-  //         cardHolder: formData.cardHolder,
-  //         cardNumber: formData.cardNumber,
-  //         cvv: formData.cvv,
-  //         expirationDate: formData.expirationDate,
-  //         firstName: formData.firstName,
-  //         lastName: formData.lastName,
-  //         phone: formData.phone,
-  //       },
-  //       subtotal: total,
-  //       total: finalTotal,
-  //     };
-
-  //     const response = await fetch("/api/checkout/process-order", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(orderData),
-  //     });
-
-  //     const result = await response.json();
-
-  //     console.log("Full API response:", result); // Add this line
-
-  //     if (!response.ok) {
-  //       throw new Error(result.error || "Failed to process order");
-  //     }
-
-  //     console.log("Order object:", result.order); // Add this line
-  //     console.log("Order number:", result.order?.orderNumber);
-
-  //     clearCart();
-
-  //     router.push(
-  //       `/orders?orderNumber=${result.order.orderNumber}`
-  //     );
-  //   } catch (error) {
-  //     console.error("Checkout error:", error);
-
-  //     const errorMessage =
-  //       error instanceof Error ? error.message : "Failed to process order";
-  //     // setOrderError(error instanceof Error ? error.message : 'Failed to process order');
-
-  //     setErrors("checkout", true, errorMessage);
-  //   } finally {
-  //     // setIsProcessingOrder(false);
-  //     setLoading(false);
-  //   }
   // };
-  
+
+  const isFormCompleteWithGuest = () => {
+    return (
+      isBillingAddressComplete() &&
+      isPaymentDetailsComplete() &&
+      isDeliveryAddressComplete()
+    );
+  };
+
   const handleCheckout = async () => {
+    if (isGuestCheckout) {
+      const emailValidation = validateGuestEmail(guestEmail);
+      if (!emailValidation.isValid) {
+        toast.error("Please enter a valid email address");
+        return;
+      }
+    }
+
     const finalDeliveryAddress = sameAsBillingAddress
       ? address
       : deliveryAddress;
@@ -579,9 +452,9 @@ export default function DesktopPaymentPage() {
     // Set flag to indicate order is being processed
     sessionStorage.setItem("orderProcessing", "true");
 
-    console.log("Billing Address:", address);
-    console.log("Delivery Address:", finalDeliveryAddress);
-    console.log("Payment Details:", formData);
+    // console.log("Billing Address:", address);
+    // console.log("Delivery Address:", finalDeliveryAddress);
+    // console.log("Payment Details:", formData);
 
     try {
       const orderData = {
@@ -599,6 +472,9 @@ export default function DesktopPaymentPage() {
         },
         subtotal: total,
         total: finalTotal,
+        isGuestOrder: isGuestCheckout,
+        userEmail: isGuestCheckout ? guestEmail : session?.user.id,
+        userId: isGuestCheckout ? null : session?.user?.id,
       };
 
       const response = await fetch("/api/checkout/process-order", {
@@ -611,14 +487,14 @@ export default function DesktopPaymentPage() {
 
       const result = await response.json();
 
-      console.log("Full API response:", result);
+      // console.log("Full API response:", result);
 
       if (!response.ok) {
         throw new Error(result.error || "Failed to process order");
       }
 
-      console.log("Order object:", result.order);
-      console.log("Order number:", result.order?.orderNumber);
+      // console.log("Order object:", result.order);
+      // console.log("Order number:", result.order?.orderNumber);
 
       // Clear the cart
       clearCart();
@@ -628,15 +504,56 @@ export default function DesktopPaymentPage() {
       sessionStorage.removeItem("checkoutAllowedTime");
 
       // Navigate to order confirmation
+      // const orderNumber = result.order?.orderNumber;
+      // if (orderNumber) {
+      //   if (isGuestCheckout) {
+      //     // For guest orders, redirect to guest tracking page with URL parameters
+      //     const params = new URLSearchParams({
+      //       orderNumber: orderNumber,
+      //       email: guestEmail,
+      //     });
+      //     router.push(`/track?${params.toString()}`);
+      //   } else {
+      //     // For authenticated users, redirect to user order page
+      //     router.push(`/orders/${orderNumber}`);
+      //   }
+      // } else {
+      //   console.error("No order number received");
+      //   if (isGuestCheckout) {
+      //     router.push("/");
+      //   } else {
+      //     router.push("/orders");
+      //   }
+      // }
+
       const orderNumber = result.order?.orderNumber;
       if (orderNumber) {
-        router.push(`/orders/${orderNumber}`);
+        if (isGuestCheckout) {
+          // Store order details in session storage
+          sessionStorage.setItem(
+            "guestOrderConfirmation",
+            JSON.stringify({
+              orderNumber: orderNumber,
+              email: guestEmail,
+              timestamp: Date.now(),
+            })
+          );
+          router.push("/track");
+        } else {
+          router.push(`/orders/${orderNumber}`);
+        }
       } else {
         console.error("No order number received");
-        router.push("/orders");
+        if (isGuestCheckout) {
+          router.push("/");
+        } else {
+          router.push("/orders");
+        }
       }
+
+
     } catch (error) {
-      console.error("Checkout error:", error);
+      // console.error("Checkout error:", error);
 
       const errorMessage =
         error instanceof Error ? error.message : "Failed to process order";
@@ -649,95 +566,10 @@ export default function DesktopPaymentPage() {
       setLoading(false);
     }
   };
+
   const ErrorMessage = ({ error }: { error: any }) => {
     if (!error) return null;
     return <span className="text-red-500 text-xs mt-1">{error}</span>;
-  };
-
-  // Enhanced input component with validation
-  const ValidatedInput = ({
-    label,
-    name,
-    value,
-    onChange,
-    onBlur,
-    type = "text",
-    required = false,
-    error,
-    touched,
-    placeholder = "",
-    className = "",
-  }: any) => (
-    <div className="flex flex-col gap-2">
-      <label>
-        {label} {required && "*"}
-      </label>
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        placeholder={placeholder}
-        className={`w-full border rounded-[4px] px-4 py-2 focus:outline-none ${
-          error && touched ? "border-red-500" : "border-gray-400"
-        } ${className}`}
-      />
-      {error && touched && <ErrorMessage error={error} />}
-    </div>
-  );
-
-  // Form validation helpers
-  // const isBillingAddressComplete = () => {
-  //   return (
-  //     formData.firstName.trim() &&
-  //     formData.lastName.trim() &&
-  //     formData.phone.trim() &&
-  //     (address.fullAddress || address.address) &&
-  //     address.city &&
-  //     address.state &&
-  //     address.zip &&
-  //     address.country
-  //   );
-  // };
-
-  // const isPaymentDetailsComplete = () => {
-  //   return (
-  //     formData.cardNumber.trim() &&
-  //     formData.expirationDate.trim() &&
-  //     formData.cvv.trim() &&
-  //     formData.cardHolder.trim()
-  //   );
-  // };
-
-  // const isDeliveryAddressComplete = () => {
-  //   if (sameAsBillingAddress) {
-  //     return isBillingAddressComplete();
-  //   }
-
-  //   if (selectedDeliveryAddress && selectedDeliveryAddress !== "new") {
-  //     return true;
-  //   }
-
-  //   if (showNewAddressForm || selectedDeliveryAddress === "new") {
-  //     return (
-  //       (deliveryAddress.fullAddress || deliveryAddress.address) &&
-  //       deliveryAddress.city &&
-  //       deliveryAddress.state &&
-  //       deliveryAddress.zip &&
-  //       deliveryAddress.country
-  //     );
-  //   }
-
-  //   return false;
-  // };
-
-  const isFormComplete = () => {
-    return (
-      isBillingAddressComplete() &&
-      isPaymentDetailsComplete() &&
-      isDeliveryAddressComplete()
-    );
   };
 
   const formatPrice = (price: number) => {
@@ -746,58 +578,6 @@ export default function DesktopPaymentPage() {
       currency: "USD",
     }).format(price);
   };
-
-  const handleQuantityChange = (productId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeItem(productId);
-    } else {
-      updateQuantity(productId, newQuantity);
-    }
-  };
-
-  const handleValidateAndSubmit = () => {
-    const finalDeliveryAddress = sameAsBillingAddress
-      ? address
-      : deliveryAddress;
-
-    const validation = validateCheckoutForm(
-      formData,
-      address,
-      finalDeliveryAddress,
-      sameAsBillingAddress
-    );
-
-    if (!validation.isValid) {
-      console.log("Validation errors:", validation.errors);
-      // Display errors to user
-      return;
-    }
-
-    // Proceed with checkout
-    handleCheckout();
-  };
-
-  // const handleCheckout = () => {
-  //   if (!isFormComplete()) {
-  //     // showError("Please complete all required fields");
-  //     return;
-  //   }
-
-  //   const finalDeliveryAddress = sameAsBillingAddress
-  //     ? address
-  //     : deliveryAddress;
-
-  //   // setLoading(true);
-  //   setLoading(true, "");
-  //   console.log("Processing checkout...");
-  //   console.log("Billing Address:", address);
-  //   console.log("Delivery Address:", finalDeliveryAddress);
-  //   console.log("Payment Details:", formData);
-
-  //   setTimeout(() => {
-  //     setLoading(false);
-  //   }, 5000);
-  // };
 
   const handlePayPalCheckout = () => {
     console.log("Processing PayPal checkout...");
@@ -964,7 +744,7 @@ export default function DesktopPaymentPage() {
                   <ErrorMessage error={flowErrors.phone} />
                 )}
               </div>
-
+              {renderGuestSection()}
               <div className="flex flex-col gap-2 w-full">
                 <label>Address *</label>
                 <AddressInput
@@ -1044,7 +824,7 @@ export default function DesktopPaymentPage() {
               </div>
               <div className="flex  gap-[2rem] w-full justify-between">
                 <button
-                  onClick={() => router.push("/checkout")}
+                  onClick={() => router.push("/cart")}
                   className="px-4 py-4 w-[50%] rounded hover:bg-gray-300 border border-black disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Cancel
@@ -1070,7 +850,7 @@ export default function DesktopPaymentPage() {
               <span>
                 {formData.firstName} {formData.lastName}
               </span>
-              <span>{session?.user?.email ?? "..."}</span>
+              <span>{session?.user?.email ?? guestEmail}</span>
               <span>
                 {address.fullAddress ||
                   `${address.address ?? ""}, ${address.city ?? ""}, ${
@@ -1254,7 +1034,7 @@ export default function DesktopPaymentPage() {
     }
   };
 
-  const renderDeliveryAddressContent = () => {
+  const renderDeliveryAddressContentForUser = () => {
     switch (stage) {
       case 3:
         return (
@@ -1418,9 +1198,9 @@ export default function DesktopPaymentPage() {
             <div className="flex  gap-[2rem] w-full justify-between mt-6">
               <button
                 onClick={handleCheckout}
-                disabled={!isFormComplete()}
+                disabled={!isFormCompleteWithGuest()}
                 className={`px-4 py-2 w-full rounded text-white hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed ${
-                  isFormComplete() ? "bg-black" : "bg-gray-400"
+                  isFormCompleteWithGuest() ? "bg-black" : "bg-gray-400"
                 }`}
               >
                 Place Order & Pay
@@ -1431,6 +1211,246 @@ export default function DesktopPaymentPage() {
       default:
         return null;
     }
+  };
+
+  const renderDeliveryAddressContent = () => {
+    switch (stage) {
+      case 3:
+        if (isGuestCheckout) {
+          // Simplified version for guest users - no saved addresses
+          return (
+            <>
+              <span className="text-lg">Delivery Address</span>
+              <div className="flex items-center gap-[1rem] mb-4">
+                <input
+                  type="checkbox"
+                  id="sameAsBillingAddress"
+                  checked={sameAsBillingAddress}
+                  onChange={handleSameAddressToggle}
+                  className="w-4 h-4"
+                />
+                <span className="font-light">Same as billing address</span>
+              </div>
+
+              {!sameAsBillingAddress && (
+                <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
+                  <h4 className="text-sm font-medium mb-3">
+                    New Delivery Address
+                  </h4>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm">Address *</label>
+                      <AddressInput
+                        accessToken={MAPBOX_TOKEN}
+                        onSelect={(addr) => {
+                          console.log("Selected Delivery Address:", addr);
+                          setDeliveryAddress(addr);
+                        }}
+                        placeholder="Enter delivery address"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm">City *</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={deliveryAddress.city || ""}
+                        onChange={(e) =>
+                          setDeliveryAddress({
+                            ...deliveryAddress,
+                            city: e.target.value,
+                          })
+                        }
+                        onBlur={() => handleFieldBlur("address")}
+                        className="w-full border border-gray-400 rounded-[4px] px-3 py-2 focus:outline-none text-sm"
+                      />
+                      {flowErrors.deliveryAddress?.city &&
+                        fieldTouched.deliveryAddress?.city && (
+                          <ErrorMessage
+                            error={flowErrors.deliveryAddress?.city}
+                          />
+                        )}
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex flex-col gap-2 flex-1">
+                        <label className="text-sm">State *</label>
+                        <input
+                          type="text"
+                          name="state"
+                          value={deliveryAddress.state || ""}
+                          onChange={(e) =>
+                            setDeliveryAddress({
+                              ...deliveryAddress,
+                              state: e.target.value,
+                            })
+                          }
+                          onBlur={() => handleFieldBlur("address")}
+                          className="w-full border border-gray-400 rounded-[4px] px-3 py-2 focus:outline-none text-sm"
+                        />
+                        {flowErrors.deliveryAddress?.state &&
+                          fieldTouched.deliveryAddress?.state && (
+                            <ErrorMessage
+                              error={flowErrors.deliveryAddress?.state}
+                            />
+                          )}
+                      </div>
+                      <div className="flex flex-col gap-2 flex-1">
+                        <label className="text-sm">Zip *</label>
+                        <input
+                          type="text"
+                          name="zip"
+                          value={deliveryAddress.zip || ""}
+                          onChange={(e) =>
+                            setDeliveryAddress({
+                              ...deliveryAddress,
+                              zip: e.target.value,
+                            })
+                          }
+                          onBlur={() => handleFieldBlur("zip")}
+                          className="w-full border border-gray-400 rounded-[4px] px-3 py-2 focus:outline-none text-sm"
+                        />
+                        {flowErrors.deliveryAddress?.zip &&
+                          fieldTouched.deliveryAddress?.zip && (
+                            <ErrorMessage
+                              error={flowErrors.deliveryAddress?.zip}
+                            />
+                          )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm">Country *</label>
+                      <input
+                        type="text"
+                        name="country"
+                        value={deliveryAddress.country || ""}
+                        onChange={(e) =>
+                          setDeliveryAddress({
+                            ...deliveryAddress,
+                            country: e.target.value,
+                          })
+                        }
+                        onBlur={() => handleFieldBlur("country")}
+                        className="w-full border border-gray-400 rounded-[4px] px-3 py-2 focus:outline-none text-sm"
+                      />
+                      {flowErrors.deliveryAddress?.country &&
+                        fieldTouched.deliveryAddress?.country && (
+                          <ErrorMessage
+                            error={flowErrors.deliveryAddress?.country}
+                          />
+                        )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {getDeliveryAddressDisplay()}
+
+              <div className="flex flex-col gap-1 border-t border-gray-400 pt-[1rem]">
+                <span className="text-lg">Review & Place order</span>
+                <span className="text-sm font-light">
+                  Review your details above and continue when you're ready.
+                </span>
+              </div>
+
+              <div className="flex gap-[2rem] w-full justify-between mt-6">
+                <button
+                  onClick={handleCheckout}
+                  disabled={!isFormCompleteWithGuest()}
+                  className={`px-4 py-2 w-full rounded text-white hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isFormCompleteWithGuest() ? "bg-black" : "bg-gray-400"
+                  }`}
+                >
+                  Place Order & Pay
+                </button>
+              </div>
+            </>
+          );
+        }
+
+        // Return existing authenticated user content
+        return renderDeliveryAddressContentForUser();
+      default:
+        return null;
+    }
+  };
+
+  const renderUserSection = () => {
+    if (isGuestCheckout) {
+      return (
+        <div className="py-4 rounded-[4px] px-3 bg-[#f0f0f0] flex items-center ">
+          {/* <div className="flex flex-col gap-2 flex-1">
+            <span className="text-sm">Guest Checkout</span>
+            <div className="flex gap-2 items-center">
+              <input
+                type="email"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                placeholder="Enter your email for order updates"
+                className="w-[60%] px-3 py-1 border border-gray-300 rounded text-sm"
+                required
+              />
+            </div>
+          </div> */}
+          <span className="text-sm font-light">Have an account?</span>
+          <Link href="/api/auth/signin" className="hover:scale-105 ml-1">
+            <span className="text-sm text-blue-600 font-light">Sign In</span>
+          </Link>
+        </div>
+      );
+    }
+
+    return (
+      <div className="py-4 rounded-[4px] px-3 bg-[#f0f0f0] flex items-center justify-between">
+        <span className="text-sm">
+          Logged in as {session?.user?.email ?? "..."}
+        </span>
+        <Link href="/api/auth/signout" className="hover:scale-105">
+          <span className="text-sm p-1">Log out</span>
+        </Link>
+      </div>
+    );
+  };
+  const renderGuestSection = () => {
+    if (isGuestCheckout) {
+      return (
+        // <div className="py-4 rounded-[4px] px-3 bg-[#f0f0f0] flex items-center ">
+        //   {/* <div className="flex flex-col gap-2 flex-1">
+        //     <span className="text-sm">Guest Checkout</span>
+        //     <div className="flex gap-2 items-center">
+        //       <input
+        // type="email"
+        // value={guestEmail}
+        // onChange={(e) => setGuestEmail(e.target.value)}
+        // placeholder="Enter your email for order updates"
+        // className="w-[60%] px-3 py-1 border border-gray-300 rounded text-sm"
+        // required
+        //       />
+        //     </div>
+        //   </div> */}
+        //   <span className="text-sm font-light">Have an account?</span>
+        //   <Link href="/api/auth/signin" className="hover:scale-105 ml-1">
+        //     <span className="text-sm text-blue-600 font-light">Sign In</span>
+        //   </Link>
+        // </div>
+
+        <div className="flex flex-col gap-2 w-full">
+          <label>Email *</label>
+          <input
+            type="email"
+            value={guestEmail}
+            onChange={(e) => setGuestEmail(e.target.value)}
+            placeholder="Enter your email for order updates"
+            required
+            className="w-full border border-gray-400 rounded-[4px] px-4 py-2 focus:outline-none "
+          />
+          {flowErrors.phone && fieldTouched.phone && (
+            <ErrorMessage error={flowErrors.phone} />
+          )}
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -1464,35 +1484,47 @@ export default function DesktopPaymentPage() {
         </div>
 
         {/* Main Content - Flexible */}
-        <div className="flex-1 py-[1rem] px-[9rem] flex gap-[2rem] overflow-hidden">
-          {/* Left Side - Scrollable */}
-          <div className="w-[60%] flex flex-col gap-[2rem] overflow-y-auto pr-4 pt-4 pb-[3rem] no-scrollbar">
-            <div className="w-full pt-[1.8rem] px-4 pb-6 border border-gray-300 rounded-[4px] relative">
-              <span className="absolute top-[-10%] text-[14px] left-[35%] px-2 bg-white text-black">
-                Express Checkout
-              </span>
+        {cart.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-neutral-400 mb-4">Your cart is empty</p>
+            <Link
+              href="/shop"
+              className="inline-flex items-center gap-2 bg-black text-white px-6 py-3 rounded-lg hover:bg-black/90 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Continue Shopping
+            </Link>
+          </div>
+        ) : (
+          <div className="flex-1 py-[1rem] px-[9rem] flex gap-[2rem] overflow-hidden">
+            {/* Left Side - Scrollable */}
+            <div className="w-[60%] flex flex-col gap-[2rem] overflow-y-auto pr-4 pt-4 pb-[3rem] no-scrollbar">
+              <div className="w-full pt-[1.8rem] px-4 pb-6 border border-gray-300 rounded-[4px] relative">
+                <span className="absolute top-[-10%] text-[14px] left-[35%] px-2 bg-white text-black">
+                  Express Checkout
+                </span>
 
-              <button className="hover:bg-[#ffc439]/85 rounded-[4px] bg-[#ffc439] w-full py-[.6rem]">
-                <div className="flex items-center justify-center gap-2">
-                  <Image
-                    src="/images/paypal.svg"
-                    alt="logo"
-                    width={55}
-                    height={60}
-                  />
-                  <span>Checkout</span>
-                </div>
-              </button>
-            </div>
+                <button className="hover:bg-[#ffc439]/85 rounded-[4px] bg-[#ffc439] w-full py-[.6rem]">
+                  <div className="flex items-center justify-center gap-2">
+                    <Image
+                      src="/images/paypal.svg"
+                      alt="logo"
+                      width={55}
+                      height={60}
+                    />
+                    <span>Checkout</span>
+                  </div>
+                </button>
+              </div>
 
-            <div className="w-full h-[.5rem] relative">
-              <div className="w-full h-[1px] bg-gray-300" />
-              <span className="absolute bg-white translate-y-[-.71rem] left-[46%] px-1">
-                or
-              </span>
-            </div>
+              <div className="w-full h-[.5rem] relative">
+                <div className="w-full h-[1px] bg-gray-300" />
+                <span className="absolute bg-white translate-y-[-.71rem] left-[46%] px-1">
+                  or
+                </span>
+              </div>
 
-            <div className="py-4 rounded-[4px] px-3 bg-[#f0f0f0] flex items-center justify-between">
+              {/* <div className="py-4 rounded-[4px] px-3 bg-[#f0f0f0] flex items-center justify-between">
               <span className="text-sm ">
                 Logged in as {session?.user?.email ?? "..."}
               </span>
@@ -1500,142 +1532,146 @@ export default function DesktopPaymentPage() {
               <Link href="/api/auth/signout" className="hover:scale-105">
                 <span className="text-sm  p-1">Log out</span>
               </Link>
-            </div>
+            </div> */}
+              {renderUserSection()}
 
-            <div className="flex justify-between items-center">
-              <span className="text-lg">Billing Details</span>
+              <div className="flex justify-between items-center">
+                <span className="text-lg">Billing Details</span>
 
-              {stage > 1 && (
-                <button
-                  onClick={() => setStage(1)}
-                  disabled={stage < 2}
-                  className="hover:scale-105"
-                >
-                  <span className="text-sm ">Change</span>
-                </button>
-              )}
-            </div>
-
-            {renderBillingDetailsContent()}
-
-            {renderCardDetailsContent()}
-
-            {renderDeliveryAddressContent()}
-          </div>
-
-          {/* Right Side - Fixed/Non-scrollable */}
-          <div className="min-w-[40%] flex gap-[.5rem] flex-col items-center overflow-hidden">
-            <div className="w-full mx-auto bg-gray-100 p-6 rounded-lg flex flex-col h-full">
-              {/* Header */}
-              <div className="flex justify-between items-center mb-6 flex-shrink-0">
-                <span className="text-lg font-medium text-gray-800">
-                  Order summary ({cart.length})
-                </span>
-                <button className="text-gray-800 text-sm underline hover:no-underline">
-                  Edit Cart
-                </button>
+                {stage > 1 && (
+                  <button
+                    onClick={() => setStage(1)}
+                    disabled={stage < 2}
+                    className="hover:scale-105"
+                  >
+                    <span className="text-sm ">Change</span>
+                  </button>
+                )}
               </div>
 
-              {/* Product Items - Scrollable if needed */}
-              <div className="flex-1 overflow-y-auto no-scrollbar mb-6">
-                {cart.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2 mb-4">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      width={40}
-                      height={40}
-                      className="object-cover rounded"
-                    />
-                    <div className="flex justify-between w-full">
-                      <div className="flex flex-col">
-                        <span
-                          className="inline-block text-[14px] font-[600] overflow-hidden whitespace-nowrap text-ellipsis align-middle"
-                          style={{ width: "12rem" }}
-                        >
-                          {item.title}
-                        </span>
-                        <span className="text-[12px]">
-                          Qty: {item.quantity}
+              {renderBillingDetailsContent()}
+
+              {renderCardDetailsContent()}
+
+              {renderDeliveryAddressContent()}
+            </div>
+
+            {/* Right Side - Fixed/Non-scrollable */}
+            <div className="min-w-[40%] flex gap-[.5rem] flex-col items-center overflow-hidden">
+              <div className="w-full mx-auto bg-gray-100 p-6 rounded-lg flex flex-col h-full">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-6 flex-shrink-0">
+                  <span className="text-lg font-medium text-gray-800">
+                    Order summary ({cart.length})
+                  </span>
+                  <button className="text-gray-800 text-sm underline hover:no-underline">
+                    Edit Cart
+                  </button>
+                </div>
+
+                {/* Product Items - Scrollable if needed */}
+                <div className="flex-1 overflow-y-auto no-scrollbar mb-6">
+                  {cart.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2 mb-4">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        width={40}
+                        height={40}
+                        className="object-cover rounded"
+                      />
+                      <div className="flex justify-between w-full">
+                        <div className="flex flex-col">
+                          <span
+                            className="inline-block text-[14px] font-[600] overflow-hidden whitespace-nowrap text-ellipsis align-middle"
+                            style={{ width: "12rem" }}
+                          >
+                            {item.title}
+                          </span>
+                          <span className="text-[12px]">
+                            Qty: {item.quantity}
+                          </span>
+                        </div>
+                        <span className="text-[12px] font-[600]">
+                          {formatPrice(item.price * item.quantity)}
                         </span>
                       </div>
-                      <span className="text-[12px] font-[600]">
-                        {formatPrice(item.price * item.quantity)}
-                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bottom Section - Fixed */}
+                <div className="flex-shrink-0">
+                  {/* Promo Code */}
+                  <div className="mb-6">
+                    <div className="flex flex-col text-gray-700 hover:text-gray-900">
+                      <button
+                        onClick={() => setShowPromoInput(!showPromoInput)}
+                        className="flex items-center"
+                      >
+                        <span className="mr-2">🏷️</span>
+                        <span className="underline text-sm">
+                          Enter a promo code
+                        </span>
+                      </button>
+
+                      {showPromoInput && (
+                        <div className="mt-4 flex gap-2">
+                          <input
+                            type="text"
+                            value={promoCode}
+                            onChange={(e) => setPromoCode(e.target.value)}
+                            placeholder="Promo code"
+                            className="flex-1 bg-white border border-gray-400 rounded px-3 py-2 focus:outline-none focus:border-gray-500"
+                          />
+                          <button className="bg-black text-white px-4 py-2 rounded hover:bg-black/90 transition-colors">
+                            Apply
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
 
-              {/* Bottom Section - Fixed */}
-              <div className="flex-shrink-0">
-                {/* Promo Code */}
-                <div className="mb-6">
-                  <div className="flex flex-col text-gray-700 hover:text-gray-900">
-                    <button
-                      onClick={() => setShowPromoInput(!showPromoInput)}
-                      className="flex items-center"
-                    >
-                      <span className="mr-2">🏷️</span>
-                      <span className="underline text-sm">
-                        Enter a promo code
+                  {/* Order Details */}
+                  <div className="space-y-3 mb-6 pb-6 border-b border-gray-300">
+                    <div className="flex justify-between">
+                      <span className="text-gray-800">Subtotal</span>
+                      <span className="text-gray-800">
+                        {formatPrice(total)}
                       </span>
-                    </button>
-
-                    {showPromoInput && (
-                      <div className="mt-4 flex gap-2">
-                        <input
-                          type="text"
-                          value={promoCode}
-                          onChange={(e) => setPromoCode(e.target.value)}
-                          placeholder="Promo code"
-                          className="flex-1 bg-white border border-gray-400 rounded px-3 py-2 focus:outline-none focus:border-gray-500"
-                        />
-                        <button className="bg-black text-white px-4 py-2 rounded hover:bg-black/90 transition-colors">
-                          Apply
-                        </button>
-                      </div>
-                    )}
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-800">Delivery</span>
+                      <span className="text-gray-800">Free</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-800">GST</span>
+                      <span className="text-gray-800">$0.00</span>
+                    </div>
                   </div>
+
+                  {/* Total */}
+                  <div className="flex justify-between items-center mb-6">
+                    <span className="text-xl font-medium text-gray-800">
+                      Total
+                    </span>
+                    <span className="text-xl font-medium text-gray-800">
+                      {formatPrice(total)}
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="w-2/5 h-4 bg-gray-300 rounded"></div>
                 </div>
-
-                {/* Order Details */}
-                <div className="space-y-3 mb-6 pb-6 border-b border-gray-300">
-                  <div className="flex justify-between">
-                    <span className="text-gray-800">Subtotal</span>
-                    <span className="text-gray-800">{formatPrice(total)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-800">Delivery</span>
-                    <span className="text-gray-800">Free</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-800">GST</span>
-                    <span className="text-gray-800">$0.00</span>
-                  </div>
-                </div>
-
-                {/* Total */}
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-xl font-medium text-gray-800">
-                    Total
-                  </span>
-                  <span className="text-xl font-medium text-gray-800">
-                    {formatPrice(total)}
-                  </span>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="w-2/5 h-4 bg-gray-300 rounded"></div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <Lock size={14} />
-              <span className="text-sm">Secure Checkout</span>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <Lock size={14} />
+                <span className="text-sm">Secure Checkout</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
