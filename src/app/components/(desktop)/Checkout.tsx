@@ -10,7 +10,7 @@ import {
   Lock,
   MapPin,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStore } from "../../../../store/store";
@@ -33,6 +33,12 @@ const router = useRouter()
   const [note, setNote] = useState("");
   const [showPromoInput, setShowPromoInput] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
+
+  useEffect(() => {
+    // When user is on cart page, allow them to access checkout
+    sessionStorage.setItem("canAccessCheckout", "true");
+    sessionStorage.setItem("checkoutAllowedTime", Date.now().toString());
+  }, []);
 
   const deliveryFee = 0; // Free delivery
   const finalTotal = total + deliveryFee;

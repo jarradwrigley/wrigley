@@ -4,13 +4,14 @@ import { useStore } from "../../../store/store";
 import CartDrawer from "../components/CartDrawer";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function DesktopLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isCartOpen, setIsCartOpen } = useStore();
+  const { loading, isCartOpen, setIsCartOpen } = useStore();
 
   return (
     <div
@@ -23,6 +24,7 @@ export default function DesktopLayout({
       <Footer />
 
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      
     </div>
   );
 }

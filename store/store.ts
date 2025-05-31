@@ -43,6 +43,15 @@ interface AppState {
   auth: AuthState;
   loading: boolean;
   errors: ErrorState;
+  loadingText: string;
+
+  // Global Loading State
+  // isLoading: boolean;
+  // setIsLoading: (loading: boolean, text?: string) => void;
+  // // Optional: Track multiple loading states
+  // loadingStates: Record<string, boolean>;
+  // setLoadingState: (key: string, loading: boolean) => void;
+  // hasAnyLoading: () => boolean;
 
   // Cart State
   isCartOpen: boolean;
@@ -74,7 +83,7 @@ interface AppState {
   setCartSynced: (synced: boolean) => void;
 
   // UI state actions
-  setLoading: (loading: boolean) => void;
+  setLoading: (loading: boolean, text?: string) => void;
   setErrors: (
     field: string,
     hasError: boolean,
@@ -91,6 +100,9 @@ const initialState = {
     isAuthenticated: false,
   },
   loading: false,
+  loadingText: "Loading...",
+  // isLoading: false,
+  // loadingStates: {},
   errors: {},
   isCartOpen: false,
   cart: [],
@@ -104,6 +116,31 @@ export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
       ...initialState,
+
+      // setIsLoading: (loading: boolean, text = "") =>
+      //   set({ isLoading: loading, loadingText: text }),
+
+      // setLoadingState: (key: string, loading: boolean) =>
+      //   set((state) => {
+      //     const newLoadingStates = { ...state.loadingStates };
+      //     if (loading) {
+      //       newLoadingStates[key] = true;
+      //     } else {
+      //       delete newLoadingStates[key];
+      //     }
+
+      //     const hasAnyLoading = Object.keys(newLoadingStates).length > 0;
+
+      //     return {
+      //       loadingStates: newLoadingStates,
+      //       isLoading: hasAnyLoading || state.isLoading,
+      //     };
+      //   }),
+
+      // hasAnyLoading: () => {
+      //   const state = get();
+      //   return state.isLoading || Object.keys(state.loadingStates).length > 0;
+      // },
 
       setIsCartOpen: (value) => set({ isCartOpen: value }),
 
@@ -495,7 +532,8 @@ export const useStore = create<AppState>()(
         }
       },
 
-      setLoading: (loading) => set({ loading }),
+      setLoading: (loading: boolean, text = "") =>
+        set({ loading, loadingText: text }),
 
       setErrors: (field, hasError, message = "", showToast = true) => {
         set((state) => ({
