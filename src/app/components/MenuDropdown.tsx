@@ -93,18 +93,18 @@ export default function DropdownMenu() {
             >
               My Profile
             </button>
+            {user && <Link href="/orders" className="hover:underline">
+              <span className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                Orders
+              </span>
+            </Link>}
             <button
               onClick={() => console.log("Settings clicked")}
               className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             >
               Subscriptions
             </button>
-            <button
-              onClick={() => console.log("Settings clicked")}
-              className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              Bookings
-            </button>
+
             {user?.role === "admin" && (
               <Link href="/admin" className="hover:underline">
                 <span className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">

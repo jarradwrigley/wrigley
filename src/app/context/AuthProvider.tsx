@@ -3,6 +3,7 @@
 
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
+import GlobalLoadingScreen from "../components/LoadingScreen";
 
 export default function AuthProvider({
   children,
@@ -14,6 +15,7 @@ export default function AuthProvider({
       <Toaster />
 
       {children}
+      <GlobalLoadingScreen iconSrc="/icons/logo.avif" />
     </SessionProvider>
   );
 }

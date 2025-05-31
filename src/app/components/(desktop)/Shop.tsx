@@ -51,6 +51,15 @@ export default function DesktopShopPage() {
   //   console.log("ccc", cart);
   // }, [cart]);
 
+  useEffect(() => {
+    // When user adds items to cart from shop, allow checkout access
+    if (cart && cart.length > 0) {
+      sessionStorage.setItem("canAccessCheckout", "true");
+      sessionStorage.setItem("checkoutAllowedTime", Date.now().toString());
+    }
+  }, [cart]);
+  
+
   const handleQuantityChange = (key: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       removeItem(key);
