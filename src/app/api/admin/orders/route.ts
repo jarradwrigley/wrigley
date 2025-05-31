@@ -115,10 +115,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { ObjectId } from "mongodb";
-import bcrypt from "bcryptjs";
 import MongoDBSingleton from "@/app/lib/mongo-instance";
 import { options } from "../../auth/[...nextauth]/options";
+
+// Force dynamic rendering
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
@@ -129,21 +130,20 @@ export async function GET(req: NextRequest) {
     }
 
     const db = await MongoDBSingleton.getInstance().connect();
-    const collection = db.collection("users");
+    const ordersCollection = db.collection("orders");
 
     try {
-      const users = await collection.find({}).toArray();
-      const sanitizedUsers = users.map((user) => ({
-        ...user,
-        _id: user._id.toString(),
-        password: undefined, // Don't send passwords
+      const orders = await ordersCollection.find({}).toArray();
+      const sanitizedOrders = orders.map((order) => ({
+        ...order,
+        _id: order._id.toString(),
       }));
 
-      console.log("[API] Fetched users:", sanitizedUsers.length);
+      console.log("[API] Fetched orders:", sanitizedOrders.length);
 
       return NextResponse.json({
         success: true,
-        data: sanitizedUsers,
+        data: sanitizedOrders,
         meta: {
           loadTime: 0,
           timestamp: new Date().toISOString(),
@@ -151,14 +151,14 @@ export async function GET(req: NextRequest) {
         },
       });
     } catch (dbError) {
-      console.error("[API Error] Failed to fetch users:", dbError);
+      console.error("[API Error] Failed to fetch orders:", dbError);
       return NextResponse.json(
-        { error: "Failed to fetch users" },
+        { error: "Failed to fetch orders" },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error("[API Error] Failed to fetch home data:", error);
+    console.error("[API Error] Failed to fetch orders data:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

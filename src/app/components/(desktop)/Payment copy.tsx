@@ -186,7 +186,7 @@ export default function DesktopPaymentPage() {
               </div>
               <div className="flex  gap-[2rem] w-full justify-between">
                 <button
-                  onClick={() => router.push("/checkout")}
+                  onClick={() => router.push("/cart")}
                   // disabled={stage <= 1}
                   className="px-4 py-4 w-[50%] rounded hoverbg-gray-300 border border-black disabled:cursor-not-allowed disabled:opacity-50"
                 >

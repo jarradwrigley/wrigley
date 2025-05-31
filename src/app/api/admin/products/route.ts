@@ -125,13 +125,13 @@
 //   }
 // }
 
-
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { ObjectId } from "mongodb";
-import bcrypt from "bcryptjs";
 import MongoDBSingleton from "@/app/lib/mongo-instance";
 import { options } from "../../auth/[...nextauth]/options";
+
+// Force dynamic rendering
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
@@ -142,21 +142,20 @@ export async function GET(req: NextRequest) {
     }
 
     const db = await MongoDBSingleton.getInstance().connect();
-    const collection = db.collection("users");
+    const productsCollection = db.collection("products");
 
     try {
-      const users = await collection.find({}).toArray();
-      const sanitizedUsers = users.map((user) => ({
-        ...user,
-        _id: user._id.toString(),
-        password: undefined, // Don't send passwords
+      const products = await productsCollection.find({}).toArray();
+      const sanitizedProducts = products.map((product) => ({
+        ...product,
+        _id: product._id.toString(),
       }));
 
-      console.log("[API] Fetched users:", sanitizedUsers.length);
+      console.log("[API] Fetched products:", sanitizedProducts.length);
 
       return NextResponse.json({
         success: true,
-        data: sanitizedUsers,
+        data: sanitizedProducts,
         meta: {
           loadTime: 0,
           timestamp: new Date().toISOString(),
@@ -164,14 +163,14 @@ export async function GET(req: NextRequest) {
         },
       });
     } catch (dbError) {
-      console.error("[API Error] Failed to fetch users:", dbError);
+      console.error("[API Error] Failed to fetch products:", dbError);
       return NextResponse.json(
-        { error: "Failed to fetch users" },
+        { error: "Failed to fetch products" },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error("[API Error] Failed to fetch home data:", error);
+    console.error("[API Error] Failed to fetch products data:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -3,6 +3,9 @@ import clientPromise from "@/app/lib/mongodb";
 import { NextResponse } from "next/server";
 import { options } from "../../auth/[...nextauth]/options";
 
+// Force dynamic rendering
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const session = await getServerSession(options);
