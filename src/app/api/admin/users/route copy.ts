@@ -113,16 +113,16 @@ export async function POST(req: NextRequest) {
       }
 
       // Hash password
-      // const saltRounds = await bcrypt.genSalt(12);
-      // const hashedPassword = await bcrypt.hash(password, saltRounds);
+      const saltRounds = await bcrypt.genSalt(12);
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      // console.log("🔐 Password hashed successfully");
-      // console.log("   - Original password length:", password.length);
-      // console.log("   - Hashed password length:", hashedPassword.length);
-      // console.log(
-      //   "   - Hash starts with $2b$:",
-      //   hashedPassword.startsWith("$2b$")
-      // );
+      console.log("🔐 Password hashed successfully");
+      console.log("   - Original password length:", password.length);
+      console.log("   - Hashed password length:", hashedPassword.length);
+      console.log(
+        "   - Hash starts with $2b$:",
+        hashedPassword.startsWith("$2b$")
+      );
 
       // Create user object with only the necessary fields
       const userData = {
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
         lastName: lastName.trim(),
         username: username.trim(),
         email: email.toLowerCase().trim(),
-        password,
+        password: hashedPassword,
         role: "user", // Default role
         followers: [],
         following: [],
@@ -154,8 +154,8 @@ export async function POST(req: NextRequest) {
       });
 
       // Test the password immediately after creation
-      // const testMatch = await bcrypt.compare(password, hashedPassword);
-      // console.log("🧪 Password verification test:", testMatch);
+      const testMatch = await bcrypt.compare(password, hashedPassword);
+      console.log("🧪 Password verification test:", testMatch);
 
       return NextResponse.json(
         {

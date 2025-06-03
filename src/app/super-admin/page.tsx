@@ -1,49 +1,3 @@
-// "use client"
-
-// // export default async function ExtraPage() {
-
-// //     return <h1 className="text-5xl">Admin Page!</h1>
-
-// // }
-
-// // pages/admin/index.tsx or app/admin/page.tsx
-// import { useSession } from "next-auth/react";
-// import { useRouter } from "next/navigation";
-// import { useEffect } from "react";
-
-// export default function AdminPage() {
-//   const { data: session, status } = useSession();
-//   const router = useRouter();
-
-//   useEffect(() => {
-//     if (status === "loading") return; // Still loading
-
-//     if (!session) {
-//       router.push('/api/auth/signin');
-//       return;
-//     }
-
-//     if (session.user.role !== 'admin') {
-//       router.push('/denied');
-//       return;
-//     }
-//   }, [session, status, router]);
-
-//   if (status === "loading") {
-//     return <div>Loading...</div>;
-//   }
-
-//   if (!session || session.user.role !== 'admin') {
-//     return <div>Access denied</div>;
-//   }
-
-//   return (
-//     <div>
-//       <h1>Admin Dashboard</h1>
-//       <p>Welcome, {session.user.name}!</p>
-//     </div>
-//   );
-// }
 
 "use client";
 
@@ -119,10 +73,10 @@ export default function AdminDashboard() {
       return;
     }
 
-    if (session.user.role !== "admin") {
-      router.push("/denied");
-      return;
-    }
+    // if (session.user.role !== "admin") {
+    //   router.push("/denied");
+    //   return;
+    // }
 
     fetchData();
   }, [session, status, router, activeTab]);
@@ -130,7 +84,7 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/${activeTab}`);
+      const response = await fetch(`/api/super-admin/${activeTab}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -196,7 +150,7 @@ export default function AdminDashboard() {
   const handleCreate = async (formData: any) => {
     // console.log('vvv', formData)
     try {
-      const response = await fetch(`/api/admin/${activeTab}`, {
+      const response = await fetch(`/api/super-admin/${activeTab}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -217,7 +171,7 @@ export default function AdminDashboard() {
 
   const handleUpdate = async (formData: any) => {
     try {
-      const response = await fetch(`/api/admin/${activeTab}`, {
+      const response = await fetch(`/api/super-admin/${activeTab}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -246,7 +200,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch(`/api/admin/${activeTab}?id=${id}`, {
+      const response = await fetch(`/api/super-admin/${activeTab}?id=${id}`, {
         method: "DELETE",
       });
 
@@ -270,7 +224,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!session || session.user.role !== "admin") {
+  if (!session || session.user.role !== "superadmin") {
     return (
       <div className="flex justify-center items-center min-h-screen">
         Access denied
@@ -284,7 +238,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <h1 className="text-3xl font-bold text-gray-900">
-              Admin Dashboard
+              Super Admin Dashboard
             </h1>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
@@ -767,6 +721,7 @@ function OrdersTable({
   );
 }
 
+
 function FormModal({
   type,
   item,
@@ -788,7 +743,7 @@ function FormModal({
           firstName: "",
           lastName: "",
           password: "",
-          role: "", 
+          role: "", // Default role
           profilePic: "",
           ...item, // Spread item to override defaults if editing
         };
@@ -934,12 +889,13 @@ function FormModal({
                   Role
                 </label>
                 <select
-                  value={formData.role || ""}
+                  value={formData.role}
                   onChange={(e) =>
                     setFormData({ ...formData, role: e.target.value })
                   }
                   className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                 >
+                  <option value="">Select Role</option>
                   <option value="user">User</option>
                   <option value="superadmin">Super Admin</option>
                   <option value="admin">Admin</option>

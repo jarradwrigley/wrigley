@@ -10,15 +10,17 @@ declare module "next-auth" {
       email?: string;
       role: string;
       username: string;
+      fullName?: string;
       profilePic: string;
     } & DefaultSession;
   }
 
   interface User extends DefaultUser {
     _id?: string;
-    image?: string;
+    image: string;
     role: string;
     username: string;
+    fullName?: string;
     profilePic: string;
   }
 }

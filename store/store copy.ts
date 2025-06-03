@@ -78,7 +78,6 @@ interface AppState {
   loadCartFromServer: () => void;
   onLogin: () => void;
   onLogout: () => void;
-  updateUserProfile: () => void;
 
   cartSynced: boolean;
   setCartSynced: (synced: boolean) => void;
@@ -371,116 +370,9 @@ export const useStore = create<AppState>()(
 
       setCartSynced: (synced) => set({ cartSynced: synced }),
 
-      // onLogin: async () => {
-      //   try {
-      //     // 1. Load the user's saved cart from the database
-      //     const res = await fetch("/api/cart");
-      //     let dbCart: any[] = [];
-
-      //     if (res.ok) {
-      //       const data = await res.json();
-      //       dbCart = data.cart || [];
-      //     }
-
-      //     // 2. Get the current guest cart
-      //     const guestCart = get().cart;
-
-      //     // 3. Create a map of DB cart items for easier lookup
-      //     const dbCartMap = new Map<string, any>();
-      //     dbCart.forEach((item) => {
-      //       dbCartMap.set(item.key, item);
-      //     });
-
-      //     // 4. Merge the carts - add quantities when items match
-      //     const mergedCart = [...dbCart]; // Start with DB cart
-      //     let hasNewItems = false;
-
-      //     guestCart.forEach((guestItem) => {
-      //       const existingIndex = mergedCart.findIndex(
-      //         (dbItem) => dbItem.key === guestItem.key
-      //       );
-
-      //       if (existingIndex >= 0) {
-      //         // Item exists in both carts - add quantities together
-      //         const existingItem = mergedCart[existingIndex];
-      //         const dbQuantity = dbCartMap.get(guestItem.key)?.quantity || 0;
-
-      //         // Only add if the guest quantity is different from what we expect
-      //         if (guestItem.quantity !== dbQuantity) {
-      //           mergedCart[existingIndex] = {
-      //             ...existingItem,
-      //             quantity: dbQuantity + guestItem.quantity,
-      //           };
-      //           hasNewItems = true;
-      //         }
-      //       } else {
-      //         // Item only exists in guest cart - add it completely
-      //         mergedCart.push(guestItem);
-      //         hasNewItems = true;
-      //       }
-      //     });
-
-      //     // 5. Calculate the new total
-      //     const newTotal = mergedCart.reduce(
-      //       (acc, item) => acc + item.price * item.quantity,
-      //       0
-      //     );
-
-      //     // 6. Update the local state with merged cart
-      //     set({ cart: mergedCart, total: newTotal });
-
-      //     // 7. Sync the merged cart back to the server if there were changes
-      //     if (hasNewItems) {
-      //       await get().syncCartToServer();
-
-      //       toast.success("Welcome back! Your cart has been updated.", {
-      //         icon: React.createElement(CircleCheckBig, {
-      //           className: "h-4 w-4",
-      //         }),
-      //       });
-      //     }
-      //   } catch (error) {
-      //     console.error("Login cart merge error:", error);
-      //     toast.error("Failed to restore your cart");
-
-      //     // Fallback: just load from server if merge fails
-      //     await get().loadCartFromServer();
-      //   }
-      // },
       onLogin: async () => {
         try {
-          // 1. Fetch user profile first
-          const profileRes = await fetch("/api/profile");
-          let userProfile: any = null;
-
-          if (profileRes.ok) {
-            const profileData = await profileRes.json();
-
-            // console.log("ggg", profileData);
-            userProfile = profileData.profile;
-
-            // Update auth state with user profile
-            set((state) => ({
-              auth: {
-                ...state.auth,
-                user: userProfile,
-                isAuthenticated: true,
-              },
-            }));
-          } else {
-            console.error("Failed to fetch user profile:", profileRes.status);
-            toast.error("Failed to load user profile");
-
-            // Still set authenticated to true even if profile fetch fails
-            set((state) => ({
-              auth: {
-                ...state.auth,
-                isAuthenticated: true,
-              },
-            }));
-          }
-
-          // 2. Load the user's saved cart from the database
+          // 1. Load the user's saved cart from the database
           const res = await fetch("/api/cart");
           let dbCart: any[] = [];
 
@@ -489,16 +381,16 @@ export const useStore = create<AppState>()(
             dbCart = data.cart || [];
           }
 
-          // 3. Get the current guest cart
+          // 2. Get the current guest cart
           const guestCart = get().cart;
 
-          // 4. Create a map of DB cart items for easier lookup
+          // 3. Create a map of DB cart items for easier lookup
           const dbCartMap = new Map<string, any>();
           dbCart.forEach((item) => {
             dbCartMap.set(item.key, item);
           });
 
-          // 5. Merge the carts - add quantities when items match
+          // 4. Merge the carts - add quantities when items match
           const mergedCart = [...dbCart]; // Start with DB cart
           let hasNewItems = false;
 
@@ -527,51 +419,28 @@ export const useStore = create<AppState>()(
             }
           });
 
-          // 6. Calculate the new total
+          // 5. Calculate the new total
           const newTotal = mergedCart.reduce(
             (acc, item) => acc + item.price * item.quantity,
             0
           );
 
-          // 7. Update the local state with merged cart
+          // 6. Update the local state with merged cart
           set({ cart: mergedCart, total: newTotal });
 
-          // 8. Sync the merged cart back to the server if there were changes
+          // 7. Sync the merged cart back to the server if there were changes
           if (hasNewItems) {
             await get().syncCartToServer();
 
-            // toast.success("Welcome back! Your cart has been updated.", {
-            //   icon: React.createElement(CircleCheckBig, {
-            //     className: "h-4 w-4",
-            //   }),
-            // });
-          } else if (userProfile) {
-            // Show welcome message even if no cart changes
-            // toast.success(
-            //   `Welcome back, ${
-            //     userProfile.firstName ||
-            //     userProfile.username ||
-            //     userProfile.email ||
-            //     "User"
-            //   }!`,
-            //   {
-            //     icon: React.createElement(CircleCheckBig, {
-            //       className: "h-4 w-4",
-            //     }),
-            //   }
-            // );
+            toast.success("Welcome back! Your cart has been updated.", {
+              icon: React.createElement(CircleCheckBig, {
+                className: "h-4 w-4",
+              }),
+            });
           }
         } catch (error) {
-          console.error("Login process error:", error);
-          toast.error("Failed to complete login process");
-
-          // Set authenticated state even if there are errors
-          set((state) => ({
-            auth: {
-              ...state.auth,
-              isAuthenticated: true,
-            },
-          }));
+          console.error("Login cart merge error:", error);
+          toast.error("Failed to restore your cart");
 
           // Fallback: just load from server if merge fails
           await get().loadCartFromServer();
@@ -660,29 +529,6 @@ export const useStore = create<AppState>()(
               "Failed to sign out completely. Please refresh the page."
             );
           }
-        }
-      },
-
-      // Add this to your store actions
-      updateUserProfile: async () => {
-        try {
-          const profileRes = await fetch("/api/profile");
-          if (profileRes.ok) {
-            const profileData = await profileRes.json();
-            const userProfile = profileData.profile;
-
-            set((state) => ({
-              auth: {
-                ...state.auth,
-                user: userProfile,
-              },
-            }));
-
-            return userProfile;
-          }
-        } catch (error) {
-          console.error("Failed to update user profile:", error);
-          return null;
         }
       },
 

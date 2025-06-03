@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function GuestOrderTracking() {
   const router = useRouter();
@@ -156,8 +157,36 @@ export default function GuestOrderTracking() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 pb-8">
+         <div className="w-full border-b border-gray-400 py-[1.37rem] px-[9rem] flex justify-between items-center flex-shrink-0">
+                  <div className="flex items-center gap-[.5rem]">
+                    <Link href='/'>
+                    <Image
+                      src="/images/logo_red.avif"
+                      alt="logo"
+                      width={55}
+                      height={55}
+                      />
+                      </Link>
+                    <span
+                      style={{ fontFamily: "museo", letterSpacing: "2px" }}
+                      className="font-[600] text-[1.3rem] "
+                    >
+                      Track
+                    </span>
+                  </div>
+        
+                  <Link href="/shop" className="">
+                    <span
+                      style={{ textDecoration: "underline" }}
+                      className="text-black/70 hover:text-black"
+                    >
+                      Continue Browsing
+                    </span>
+                  </Link>
+                </div>
+
+      <div className="max-w-4xl mx-auto px-4 pt-4">
         {/* Header - Different for confirmation vs tracking */}
         <div className="text-center mb-8">
           {isConfirmationMode ? (

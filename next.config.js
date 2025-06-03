@@ -10,7 +10,9 @@ const nextConfig = {
       },
     ],
   },
-  swcMinify: false,
+  // experimental: {
+  //   https: true,
+  // },
 };
 
 module.exports = nextConfig
