@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(options);
 
-    if (!session || session.user.role !== "admin") {
+    if (!session || session.user.role !== "superadmin") {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       // password: "[REDACTED]",
     });
 
-    const { firstName, lastName, username, email, password } = body;
+    const { firstName, lastName, username, email, password, role } = body;
 
     // Validation
     if (!firstName || !lastName || !email || !password || !username) {
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
         username: username.trim(),
         email: email.toLowerCase().trim(),
         password,
-        role: "user", // Default role
+        role, 
         followers: [],
         following: [],
         posts: [],
@@ -204,7 +204,7 @@ export async function PUT(req: NextRequest) {
   try {
     const session = await getServerSession(options);
 
-    if (!session || session.user.role !== "admin") {
+    if (!session || session.user.role !== "superadmin") {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -356,7 +356,7 @@ export async function DELETE(req: NextRequest) {
   try {
     const session = await getServerSession(options);
 
-    if (!session || session.user.role !== "admin") {
+    if (!session || session.user.role !== "superadmin") {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 

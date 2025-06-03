@@ -10,11 +10,14 @@ import ShoppingBadge from "./ShoppingBadge";
 import { signOut, useSession } from "next-auth/react";
 import DropdownMenu from "./MenuDropdown";
 import { useStore } from "../../../store/store";
+import { useEffect } from "react";
 
 const Header = () => {
   const { setIsCartOpen } = useStore();
   const pathname = usePathname();
   const { data: session, status } = useSession();
+
+  // useEffect(() => {console.log('sss', session)}, [session])
 
   const isActive = (path: string) => {
     if (path === "/") {

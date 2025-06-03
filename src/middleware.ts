@@ -7,7 +7,22 @@ export default withAuth(
       request.nextUrl.pathname.startsWith("/admin") &&
       request.nextauth.token?.role !== "admin"
     ) {
+      return NextResponse.rewrite(new URL("/denied", request.url));
+    }
 
+    if (
+      request.nextUrl.pathname.startsWith("/super-admin") &&
+      request.nextauth.token?.role !== "superadmin"
+    ) {
+      return NextResponse.rewrite(new URL("/denied", request.url));
+    }
+
+    if (
+      (request.nextUrl.pathname.startsWith("/profile") ||
+        request.nextUrl.pathname.startsWith("/subscriptions") ||
+        request.nextUrl.pathname.startsWith("/orders")) &&
+      !request.nextauth.token?.id
+    ) {
       return NextResponse.rewrite(new URL("/denied", request.url));
     }
 
@@ -16,7 +31,7 @@ export default withAuth(
     //   request.nextauth.token?.role === "admin"
     // ) {
     //   return NextResponse.rewrite(new URL("/admin", request.url));
-    // } 
+    // }
 
     if (
       request.nextUrl.pathname.startsWith("/client") &&
@@ -33,8 +48,16 @@ export default withAuth(
   }
 );
 
-export const config = { matcher: [ "/client", "/admin"] };
-
+export const config = {
+  matcher: [
+    // "/admin/:path*",
+    "/super-admin/:path*",
+    "/profile/:path*",
+    "/subscriptions/:path*",
+    "/orders/:path*",
+    "/client/:path*",
+  ],
+};
 
 // import { withAuth, NextRequestWithAuth } from "next-auth/middleware";
 // import { NextResponse } from "next/server";

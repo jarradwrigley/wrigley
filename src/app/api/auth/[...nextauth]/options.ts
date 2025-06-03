@@ -13,12 +13,12 @@ export const options: NextAuthOptions = {
         username: {
           label: "Username:",
           type: "text",
-          placeholder: "your-username",
+          placeholder: "Enter username",
         },
         password: {
           label: "Password:",
           type: "password",
-          placeholder: "your-password",
+          placeholder: "Enter password",
         },
       },
       async authorize(credentials) {
@@ -27,43 +27,104 @@ export const options: NextAuthOptions = {
         }
 
         try {
-          const client = await clientPromise;
-          const users = client.db().collection("users");
+          // Get the base URL for internal API calls
+          const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
-          // Find user by username
-          const user = await users.findOne({
-            username: credentials.username,
+          // console.log("📡 Making API call to authenticate user");
+
+          // Make API call to your authentication endpoint
+          const response = await fetch(`${baseUrl}/api/auth/authenticate`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username: credentials.username,
+              password: credentials.password,
+            }),
           });
 
-          // console.log("ggg", user);
+          // console.log("📡 API response status:", response.status);
 
-          if (!user) {
+          if (!response.ok) {
+            const errorData = await response.json();
+            // console.log("❌ API authentication failed:", errorData.error);
             return null;
           }
 
-          // Check password
-          // const isPasswordValid = await bcrypt.compare(
-          //   credentials.password,
-          //   user.password
-          // );
+          const result = await response.json();
+          // console.log("✅ API authentication successful");
 
-          // if (!isPasswordValid) {
-          //   return null;
-          // }
+          if (result.success && result.user) {
+            // console.log("👤 Returning authenticated user:", {
+            //   id: result.user.id,
+            //   username: result.user.username,
+            //   email: result.user.email,
+            //   role: result.user.role,
+            // });
 
-          // Return user object (without password)
-          // return {
-          //   id: user._id.toString(),
-          //   name: user.name || user.username,
-          //   username: user.username,
-          //   role: user.role,
-          // };
+            // console.log("👤 Returning authenticated user:", result.user);
 
-          return user as any; // Cast to any to avoid type issues, ensure user object matches expected shape
+            // return {
+            //   id: result.user.id,
+            //   username: result.user.username,
+            //   email: result.user.email,
+            //   role: result.user.role,
+            //   profilePic: result.user.profilePic,
+            //   firstName: result.user.firstName,
+            //   lastName: result.user.lastName,
+            // };
+
+            // const { password, ...userWithoutPassword } = result.user;
+
+            return result.user;
+          }
+
+          return null;
         } catch (error) {
-          console.error("Authentication error:", error);
+          console.error("💥 API call error:", error);
           return null;
         }
+
+        // try {
+        //   const client = await clientPromise;
+        //   const users = client.db().collection("users");
+
+        //   // Find user by username
+        //   const user = await users.findOne({
+        //     username: credentials.username,
+        //   });
+
+        //   console.log("ggg", user);
+
+        //   if (!user) {
+        //     return null;
+        //   }
+
+        //   // Check password
+        //   // const hashedPassword =
+        //   //   typeof user.password === "string"
+        //   //     ? user.password
+        //   //     : user.password.toString();
+
+        //   // const isMatch = await bcrypt.compare(
+        //   //   credentials.password,
+        //   //   hashedPassword
+        //   // );
+
+        //   // if (!isMatch) return null;
+
+        //   // Remove password before returning
+          // const { password, ...userWithoutPassword } = user;
+
+          // return {
+          //   ...userWithoutPassword,
+          //   id: user._id.toString(), // for NextAuth token
+          // } as any;
+        // } catch (error) {
+        //   console.error("Authentication error:", error);
+        //   return null;
+        // }
 
         // const user = {
         //   id: "42",
@@ -113,8 +174,9 @@ export const options: NextAuthOptions = {
       if (user) {
         // console.log("User in JWT callback:", user);
         token.id = user._id ?? "";
-        token.image = user.profilePic ?? "";
+        token.image = user.profilePic ?? "/images/avatar.svg";
         token.username = user.username;
+        token.fullName = user.fullName;
         token.role = user.role;
         token.profilePic = user.profilePic;
       }
@@ -132,6 +194,7 @@ export const options: NextAuthOptions = {
         session.user.image = token.image as string;
         //@ts-ignore
         session.user.username = token.username as string;
+        session.user.fullName = token.fullName as string;
         session.user.role = token.role as string;
         //@ts-ignore
         session.user.profilePic = token.profilePic as string;
