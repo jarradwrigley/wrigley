@@ -55,6 +55,8 @@ export interface IUser extends Document {
     invoiceIssued?: boolean;
     priceQuoteIsAccepted?: boolean;
   };
+  totpSecret?: string;
+  isTotpEnabled: boolean;
 }
 
 const AddressSchema = new Schema(
@@ -124,10 +126,13 @@ const UserSchema = new Schema<IUser>(
         deviceName: String,
       },
     ],
+
     followers: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
     following: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
     posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
     preferences: { type: PreferencesSchema },
+    totpSecret: { type: String, default: null },
+    isTotpEnabled: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
@@ -151,8 +156,6 @@ UserSchema.pre("save", async function (next) {
     next(error);
   }
 });
-
-
 
 export default mongoose.models.User ||
   mongoose.model<IUser>("User", UserSchema);

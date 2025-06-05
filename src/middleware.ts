@@ -16,10 +16,10 @@ export default withAuth(
     ) {
       return NextResponse.rewrite(new URL("/denied", request.url));
     }
-
+// console.log("ppp", request.nextauth.token);
     if (
       (request.nextUrl.pathname.startsWith("/profile") ||
-        request.nextUrl.pathname.startsWith("/subscriptions") ||
+        request.nextUrl.pathname.startsWith("/encryptions") ||
         request.nextUrl.pathname.startsWith("/orders")) &&
       !request.nextauth.token?.id
     ) {
@@ -53,7 +53,7 @@ export const config = {
     // "/admin/:path*",
     "/super-admin/:path*",
     "/profile/:path*",
-    "/subscriptions/:path*",
+    "/encryptions/:path*",
     "/orders/:path*",
     "/client/:path*",
   ],

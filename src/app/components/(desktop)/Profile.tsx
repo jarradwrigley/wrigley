@@ -16,6 +16,9 @@ import Subscription from "../Subscription";
 import { useRouter } from "next/navigation";
 import { useStore } from "../../../../store/store";
 import { capitalizeFirstLetter } from "@/lib/utils";
+import Link from "next/link";
+import { SubscriptionsResponse } from "./Subscription";
+import EncryptionCard from "../EncryptionCard";
 
 // Proper TypeScript interfaces
 interface Profile {
@@ -35,7 +38,7 @@ interface ProfileResponse {
 }
 
 // Extract fetcher function
-const fetcher = async (url: string): Promise<ProfileResponse> => {
+const fetcher = async (url: string): Promise<any> => {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error("Failed to fetch profile");
@@ -59,6 +62,25 @@ function useProfile() {
     loading: isLoading,
     error,
     mutate, // For updating cache after edit
+  };
+}
+
+function useSubscriptions() {
+  const { data, error, isLoading, mutate } = useSWR<SubscriptionsResponse>(
+    "/api/subscriptions",
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000, // Cache for 30 seconds
+    }
+  );
+
+  return {
+    subscriptions: data?.subscriptions || [],
+    totalCount: data?.totalCount || 0,
+    loading: isLoading,
+    error,
+    mutate,
   };
 }
 
@@ -427,6 +449,12 @@ ProfileInfo.displayName = "ProfileInfo";
 // Main content component
 const Content: React.FC = () => {
   const { updateUserProfile } = useStore();
+  const {
+    subscriptions,
+    loading: subscriptionLoading,
+    error: subscriptionError,
+    mutate: subscriptionMutate,
+  } = useSubscriptions();
   const { profile, loading, error, mutate } = useProfile();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -452,6 +480,7 @@ const Content: React.FC = () => {
 
         // Update the cache with new data
         mutate({ profile: updatedData.profile }, false);
+        subscriptionMutate();
       } catch (error) {
         console.error("Error updating profile:", error);
         throw error;
@@ -460,8 +489,15 @@ const Content: React.FC = () => {
     [mutate]
   );
 
+  const handleActivationSuccess = async () => {
+    // Refresh subscriptions after successful activation
+    // fetchSubscriptions();
+    await subscriptionMutate();
+    await mutate();
+  };
+
   // Handle error state
-  if (error) {
+  if (error || subscriptionError) {
     return (
       <div className="flex w-full items-center justify-center h-64">
         <div className="text-center">
@@ -544,14 +580,40 @@ const Content: React.FC = () => {
 
           {/* Subscriptions */}
           <div className="w-full p-2 lg:w-1/3 flex flex-col gap-4">
-            <h2 className="text-2xl font-cabin">Subscriptions</h2>
-            <div className="w-full p-2 max-h-[35rem] overflow-y-auto no-scrollbar flex flex-col gap-3">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="rounded-lg bg-neutral-900">
-                  <Subscription title="Mobile Only v4" percentage={28.0} />
-                </div>
-              ))}
+            <div className="w-full px-2 flex justify-between items-center">
+              <h2 className="text-2xl font-cabin">Encryptions</h2>
+
+              {subscriptions.length > 0 ? (
+                <Link href="/encryptions">
+                  <span className="text-sm">Manage</span>
+                </Link>
+              ) : null}
             </div>
+            {subscriptions.length > 2 ? (
+              <div className="w-full p-2 max-h-[35rem] overflow-y-auto no-scrollbar flex flex-col gap-3">
+                {subscriptions.map((subscription, index) => (
+                  <div key={index} className="rounded-lg bg-neutral-900">
+                    {/* <Subscription title="Mobile Only v4" percentage={28.0} /> */}
+                    <EncryptionCard
+                      key={subscription._id}
+                      subscription={subscription}
+                      // onEdit={handleEdit}
+                      // onDelete={handleDelete}
+                      onActivationSuccess={handleActivationSuccess}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="w-full p-2 flex items-center justify-center">
+                <Link
+                  href="/encryptions"
+                  className="flex items-center gap-4 hover:bg-white/80 hover:text-black rounded-lg px-3 py-2 transition-colors"
+                >
+                  <span>Manage Encryptions</span>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -53,7 +53,7 @@ export const options: NextAuthOptions = {
           }
 
           const result = await response.json();
-          // console.log("✅ API authentication successful");
+          // console.log("✅ API authentication successful", result);
 
           if (result.success && result.user) {
             // console.log("👤 Returning authenticated user:", {
@@ -173,7 +173,7 @@ export const options: NextAuthOptions = {
       // When user signs in, add custom fields to token
       if (user) {
         // console.log("User in JWT callback:", user);
-        token.id = user._id ?? "";
+        token.id = user._id ?? user.id ?? "";
         token.image = user.profilePic ?? "/images/avatar.svg";
         token.username = user.username;
         token.fullName = user.fullName;

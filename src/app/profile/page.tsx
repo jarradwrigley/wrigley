@@ -1,7 +1,7 @@
 import DesktopProfilePage from "../components/(desktop)/Profile";
 import DesktopLayout from "../context/DesktopLayout";
 
-export default async function Shop() {
+export default async function ProfilePage() {
   return (
     <>
       {/* <MobileLayout>
