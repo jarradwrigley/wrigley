@@ -1,4 +1,3 @@
-// app/api/subscriptions/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { options } from "../auth/[...nextauth]/options";
@@ -17,14 +16,14 @@ export async function GET(req: NextRequest) {
     // await connectDB();
 
     // Find user by email
-    const user = await User.findOne({ email: session.user.email });
+    const user = await User.findOne({ email: session?.user?.email });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Fetch user's subscriptions
     const subscriptions = await Subscription.find({ user: user._id })
-      .populate("user", "firstName lastName email")
+      // .populate("user", "firstName lastName email")
       .sort({ createdAt: -1 });
 
     return NextResponse.json({

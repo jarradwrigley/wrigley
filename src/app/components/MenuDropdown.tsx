@@ -11,7 +11,7 @@ export default function DropdownMenu() {
   const { auth, onLogout } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<any>(null);
-  // const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   // const user = session?.user;
   const user = auth?.user;
@@ -47,37 +47,54 @@ export default function DropdownMenu() {
 
   return (
     <div className="relative py-3" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100/10 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        {user?.profilePic ? (
-          <Image
-            src={user?.profilePic ?? "/images/product1.avif"}
-            className="rounded-full"
-            alt="profpic"
-            width={30}
-            height={30}
-          />
-        ) : (
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-            {user?.fullName?.[0] ?? "U"}
+      {status === "loading" ? (
+        // Loading skeleton
+        <div className="flex items-center space-x-2 p-2 rounded-lg animate-pulse">
+          {/* Profile picture skeleton */}
+          <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+
+          {/* Text content skeleton */}
+          <div className="text-left flex-1">
+            <div className="h-3.5 bg-gray-300 rounded w-20 mb-1"></div>
+            <div className="h-3 bg-gray-300 rounded w-32"></div>
           </div>
-        )}
-        <div className="text-left">
-          <div className="text-sm font-medium text-white">
-            {user?.fullName ?? "User"}
-          </div>
-          <div className="text-xs text-gray-500">
-            {user?.email ?? "no-email@example.com"}
-          </div>
+
+          {/* Chevron skeleton */}
+          <div className="w-4 h-4 bg-gray-300 rounded"></div>
         </div>
-        <ChevronDown
-          className={`w-4 h-4 text-gray-400 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
+      ) : (
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100/10 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {user?.profilePic ? (
+            <Image
+              src={user?.profilePic ?? "/images/product1.avif"}
+              className="rounded-full"
+              alt="profpic"
+              width={30}
+              height={30}
+            />
+          ) : (
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+              {user?.fullName?.[0] ?? "U"}
+            </div>
+          )}
+          <div className="text-left">
+            <div className="text-sm font-medium text-white">
+              {user?.fullName ?? "User"}
+            </div>
+            <div className="text-xs text-gray-500">
+              {user?.email ?? "no-email@example.com"}
+            </div>
+          </div>
+          <ChevronDown
+            className={`w-4 h-4 text-gray-400 transition-transform ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+      )}
 
       {isOpen && (
         <div className="absolute right-0 z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg animate-in fade-in-0 zoom-in-95 duration-100">

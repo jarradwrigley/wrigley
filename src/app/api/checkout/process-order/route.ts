@@ -1,43 +1,20 @@
-import clientPromise from "@/app/lib/mongodb";
+import clientPromise from "../../../lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { options } from "../../auth/[...nextauth]/options";
 import { getServerSession } from "next-auth";
 
-// interface CartItem {
-//   id: string;
-//   title: string;
-//   price: number;
-//   quantity: number;
-//   image: string;
-// }
-
-// interface Address {
-//   city: string;
-//   coordinates: [number, number];
-//   country: string;
-//   fullAddress: string;
-//   state: string;
-//   zip: string;
-// }
-
-// interface PaymentDetails {
-//   cardHolder: string;
-//   cardNumber: string; // You might want to mask this in production
-//   cvv: string; // Don't store this in production
-//   expirationDate: string;
-//   firstName: string;
-//   lastName: string;
-//   phone: string;
-// }
-
-// interface OrderData {
-//   items: CartItem[];
-//   billingAddress: Address;
-//   deliveryAddress: Address;
-//   paymentDetails: PaymentDetails;
-//   subtotal: number;
-//   total: number;
-// }
+function escapeHtml(text: string) {
+  return text.replace(/[&<>"']/g, (match) => {
+    const escapeMap: { [key: string]: string } = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+    };
+    return escapeMap[match];
+  });
+}
 
 async function generateOrderNumber(db: any): Promise<string> {
   const year = new Date().getFullYear();
@@ -99,10 +76,10 @@ async function sendGuestOrderConfirmation(email: any, order: any) {
       
       <div class="address-section">
         <h3>Billing Address</h3>
-        <p>${order.billingAddress.fullAddress}</p>
+        <p>${escapeHtml(order.billingAddress.fullAddress)}</p>
         
         <h3>Delivery Address</h3>
-        <p>${order.deliveryAddress.fullAddress}</p>
+        <p>${escapeHtml(order.deliveryAddress.fullAddress)}</p>
       </div>
       
       <h3>Order Items</h3>
@@ -110,8 +87,8 @@ async function sendGuestOrderConfirmation(email: any, order: any) {
         .map(
           (item: any) => `
         <div class="item">
-          <p><strong>${item.title}</strong></p>
-          <p>Quantity: ${item.quantity} × $${item.price.toFixed(2)} = $${(
+          <p><strong>${escapeHtml(item.title)}</strong></p>
+          <p>Quantity: ${item.quantity} × ${item.price.toFixed(2)} = ${(
             item.quantity * item.price
           ).toFixed(2)}</p>
         </div>
@@ -229,10 +206,10 @@ async function sendOrderConfirmation(email: any, order: any) {
       
       <div class="address-section">
         <h3>Billing Address</h3>
-        <p>${order.billingAddress.fullAddress}</p>
+        <p>${escapeHtml(order.billingAddress.fullAddress)}</p>
         
         <h3>Delivery Address</h3>
-        <p>${order.deliveryAddress.fullAddress}</p>
+        <p>${escapeHtml(order.deliveryAddress.fullAddress)}</p>
       </div>
       
       <h3>Order Items</h3>
@@ -240,8 +217,8 @@ async function sendOrderConfirmation(email: any, order: any) {
         .map(
           (item: any) => `
         <div class="item">
-          <p><strong>${item.title}</strong></p>
-          <p>Quantity: ${item.quantity} × $${item.price.toFixed(2)} = $${(
+          <p><strong>${escapeHtml(item.title)}</strong></p>
+          <p>Quantity: ${item.quantity} × ${item.price.toFixed(2)} = ${(
             item.quantity * item.price
           ).toFixed(2)}</p>
         </div>
@@ -322,15 +299,6 @@ We'll send you another email when your order ships.`,
 
 export async function POST(req: NextRequest) {
   try {
-    // Get session
-    // const session = await getServerSession(options);
-    // if (!session?.user?.email) {
-    //   return NextResponse.json(
-    //     { error: "Unauthorized" },
-    //     { status: 401 }
-    //   );
-    // }
-
     // Parse request body
     const orderData: any = await req.json();
 

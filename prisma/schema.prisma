@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+enum Role {
+  user
+  admin
+  superadmin
+}
+
+enum SubscriptionStatus {
+  active
+  queued
+  expired
+}
+
+enum Theme {
+  light
+  dark
+}
+
+model User {
+  id           String         @id @default(uuid())
+  username     String         @unique
+  firstName    String
+  lastName     String
+  fullName     String?
+  email        String         @unique
+  password     String
+  role         Role           @default(user)
+  phone        String?
+  profilePic   String?
+  gender       Gender?
+  dob          DateTime?
+  address      Address?
+  bio          String?
+  location     String?
+  website      String?
+
+  devices      Device[]
+  posts        Post[]
+  subscriptions Subscription[]
+
+  preferences  Preferences?
+
+  followers    Follows[]      @relation("followers")
+  following    Follows[]      @relation("following")
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Address {
+  id          String   @id @default(uuid())
+  fullAddress String?
+  street      String?
+  city        String?
+  state       String?
+  country     String?
+  postalCode  String?
+  zip         String?
+
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @unique
+}
+
+model Device {
+  id         String   @id @default(uuid())
+  deviceId   String
+  deviceName String?
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  // Define your post fields
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+model Subscription {
+  id         String             @id @default(uuid())
+  user       User               @relation(fields: [userId], references: [id])
+  userId     String
+  deviceId   String
+  plan       String
+  startDate  DateTime
+  endDate    DateTime
+  status     SubscriptionStatus @default(queued)
+
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+}
+
+model Preferences {
+  id                              String   @id @default(uuid())
+  privacy                         Boolean  @default(false)
+  language                        String   @default("en")
+  theme                           Theme    @default(light)
+  notifications                   Boolean  @default(true)
+  newMessages                     Boolean  @default(true)
+  blog                            Boolean  @default(true)
+  postsOrCommentsliked            Boolean  @default(true)
+  commentsOnPosts                 Boolean  @default(true)
+  abandonedCart                   Boolean  @default(true)
+  makesPurchase                   Boolean  @default(true)
+  rsvpConfirmationEmail           Boolean  @default(true)
+  reminderBeforeEventStarts       Boolean  @default(true)
+  confirmationEmailWithTickets    Boolean  @default(true)
+  eventIsUpdated                  Boolean  @default(true)
+  eventCancelationEmail           Boolean  @default(true)
+  remindersAndUpdates             Boolean  @default(true)
+  confirmationsAndStatusChange    Boolean  @default(true)
+  paymentNotifications            Boolean  @default(true)
+  invoiceIssued                   Boolean  @default(true)
+  priceQuoteIsAccepted            Boolean  @default(true)
+
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @unique
+}
+
+model Follows {
+  id         String  @id @default(uuid())
+  follower   User    @relation("followers", fields: [followerId], references: [id])
+  followerId String
+  following  User    @relation("following", fields: [followingId], references: [id])
+  followingId String
+
+  @@unique([followerId, followingId])
+}
