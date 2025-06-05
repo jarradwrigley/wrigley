@@ -456,7 +456,7 @@ export const useStore = create<AppState>()(
           if (profileRes.ok) {
             const profileData = await profileRes.json();
 
-            // console.log("ggg", profileData);
+            console.log("ggg", profileData);
             userProfile = profileData.profile;
 
             // Update auth state with user profile
