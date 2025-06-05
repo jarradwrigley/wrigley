@@ -453,6 +453,7 @@ export const useStore = create<AppState>()(
           const profileRes = await fetch("/api/profile");
           let userProfile: any = null;
 
+          console.log("ggg", profileRes);
           if (profileRes.ok) {
             const profileData = await profileRes.json();
 

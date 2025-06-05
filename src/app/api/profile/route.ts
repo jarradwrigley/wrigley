@@ -1,10 +1,11 @@
 
-import clientPromise from "@/app/lib/mongodb";
+import clientPromise from "../../lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { options } from "../auth/[...nextauth]/options";
 import { getServerSession } from "next-auth";
 import { ObjectId } from "mongodb";
-import User from "@/model/User";
+import User from "../../../model/User";
+// import User from "@/model/User";
 
 // Force dynamic rendering and server-side runtime
 export const runtime = "nodejs";
