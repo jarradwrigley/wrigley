@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String         @id @default(cuid())
+  username        String         @unique
+  firstName       String
+  lastName        String
+  fullName        String?
+  email           String         @unique
+  password        String
+  role            Role           @default(USER)
+  phone           String?
+  profilePic      String?
+  gender          Gender?
+  dob             DateTime?
+  bio             String?
+  location        String?
+  website         String?
+  // Address as JSON field instead of composite type
+  address         Json?
+  // Preferences as JSON field instead of composite type  
+  preferences     Json?
+  devices         Device[]
+  posts           Post[]         @relation("UserPosts")
+  subscriptions   Subscription[]
+  totpSecret      String?
+  isTotpEnabled   Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  // Self-referential many-to-many relationship for followers
+  followers       User[]         @relation("UserFollows")
+  following       User[]         @relation("UserFollows")
+}
+
+model Product {
+  id           String   @id @default(cuid()) // internal unique id
+  key          String   @unique               // unique product identifier, e.g. "jw-cap-001"
+  title        String
+  amount       Float
+  image        String   // main image url/path
+  images       String[] // additional images, stored as array of strings
+  sizes        String[] // available sizes, e.g. ["XS", "S", "M", "L", "XL", "XXL"]
+  requiresSize Boolean  @default(false)      // whether size selection is required
+  promo        String?                       // optional promo text
+  featured     Boolean  @default(false)      // whether product is featured
+  type         String                       // product type, e.g. "cap"
+  stock        Int                          // stock quantity available
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  total     Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  key       String   // Composite key like "lgw-trucker-pink-default"
+  size      String   // Size information
+  title     String   // Product title
+  price     Float    // Product price
+  quantity  Int      // Quantity in cart
+  image     String   // Product image URL
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  
+  @@map("cart_items")
+}
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  user               User               @relation(fields: [userId], references: [id])
+  userId             String
+  imei               String
+  deviceName         String?
+  phone              String
+  email              String
+  subscriptionType   String
+  subscriptionPrice  Float?
+  subscriptionCards  String[]
+  queuePosition      String?
+  startDate          DateTime?
+  endDate            DateTime?
+  status             SubscriptionStatus @default(PENDING)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model Device {
+  id           String   @id @default(cuid())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  imei         String   @unique
+  totpSecret   String
+  isOnboarded  Boolean  @default(false)
+  deviceName   String   @default("Device")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, imei])
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  user      User     @relation("UserPosts", fields: [userId], references: [id])
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Tour {
+  id           String   @id @default(cuid())
+  date         Int?
+  mon          String?
+  title        String?
+  location     String?
+  description  String?
+  link         String?
+  createdAt    DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  QUEUED
+  EXPIRED
+  DECLINED
+}
+
+enum Theme {
+  LIGHT
+  DARK
+}
